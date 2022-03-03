@@ -279,8 +279,8 @@ KendrickHetMLE=unlist(femeta(ai=xk_mi,bi=tk_mi-xk_mi,ci=mk_mi-xk_mi,di=nk_mi-tk_
 #                       KendrickHomWoolf,KendrickHetWoolf,
 #                       KendrickHomMLE,KendrickHetMLE)[,-4],3)
 # 
-# tabletext_d <- cbind(c("Method", "Fixed-effects cMLE w/ Blaker", "cMLE w/ Fisher", "Tian et al", "Common-effect MH+0.5", "Peto Method+0.5", "Common-effect Li & Rice MH",
-#                         "Fixed-effects Li & Rice MH", "Common-effect Li & Rice Woolf", "Fixed-effects Li & Rice Woolf", "Common-effect Li & Rice MLE", "Fixed-effects Li & Rice MLE"),
+# tabletext_d <- cbind(c("Method", "Poisson-Binomial Approach", "cMLE w/ Fisher", "Tian et al", "Common-effect MH+0.5", "Peto Method+0.5", "Li & Rice MH w/Homogeneity",
+#                         "Li & Rice MH  w/Heterogeneity", "Li & Rice Woolf w/Homogeneity", "Li & Rice Woolf w/Heterogeneity", "Li & Rice MLE w/Homogeneity", "Li & Rice MLE w/Heterogeneity"),
 #                       c("log(OR)", "0.498", "0.498", "0.171", "0.529", "0.495", "0.182", "0.182", "0.202", "0.202", "0.506", "0.506"),
 #                       c("CI", "[-0.072,1.082]", "[-0.038,1.034]", "[-0.185,0.548]", "[-0.016,1.075]",
 #                         "[-0.020,1.010]", "[-0.589,0.953]", "[-0.507,0.871]", "[-0.418,0.823]", "[-0.428,0.832]", "[-0.027,1.038]", "[-0.007,1.019]"))
