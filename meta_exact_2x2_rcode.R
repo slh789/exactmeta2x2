@@ -1,6 +1,6 @@
 ### Directory set-up and packages
 rm(list=ls())
-#### note: select your directory 
+### select your directory here (make sure data file is in that directory)
 dat <- read.csv("rosiglit.csv")
 library(metafor)
 library(meta)
@@ -220,6 +220,8 @@ for(i in 1:length(nlm_ind[!is.na(nlm_ind)])){
 }
 
 deltaest <- sqrt(mean((ps-mean(ps))^2))  ### delta hat under heterogeneity
+xiest <- sqrt(1/(1-deltaest^2/(mean(ps)*(1-mean(ps)))))
+toolarge <- 1-2*pnorm(qnorm(.025)*xiest)-0.95
 
 ps <- c()
 for(i in 1:length(nlm_ind[!is.na(nlm_ind)])){
@@ -228,7 +230,8 @@ for(i in 1:length(nlm_ind[!is.na(nlm_ind)])){
 }
 
 deltaesthom <- sqrt(mean((ps-mean(ps))^2))  ### delta hat under homogeneity
-
+xiesthom <- sqrt(1/(1-deltaesthom^2/(mean(ps)*(1-mean(ps)))))
+toolargehom <- 1-2*pnorm(qnorm(.025)*xiesthom)-0.95
 
 ### Getting the Blaker confidence intervals
 ### For CVD mortality
@@ -252,68 +255,115 @@ MH=unlist( rma.mh(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,me
 ### Peto
 Peto=unlist( rma.peto(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi)[c("beta","ci.lb","ci.ub","pval")])
 
+### Common-effect Woolf
+Woolf=as.numeric(unlist( rma.uni(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",method="FE",drop00=TRUE) )[c("beta","ci.lb","ci.ub","pval")])
+
+### Note that Li and Rice's method labels the cells differently with bi being the number of cases in the control arm
+# datt <- dat[dat$rosi.d+dat$cont.d>0,] ### drop 00's
+# datt <- as.data.frame(cbind(datt$rosi.d,datt$rosi.n-datt$rosi.d,datt$cont.d,datt$cont.n-datt$cont.d))
+
+datt <- dat[dat$rosi.mi+dat$cont.mi>0,] ### drop 00's
+datt <- as.data.frame(cbind(datt$rosi.mi,datt$rosi.n,datt$cont.mi,datt$cont.n))
+
+colnames(datt) <- c("ai","n1i","bi","n2i")
+
 ### Li Hom MH
-KendrickHomMH=unlist(femeta(ai=xk_mi,bi=tk_mi-xk_mi,ci=mk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi, null.value=log(psi0), vtype="Hom", drop00=TRUE)[c("estimate","conf.int","p.value")])
+KendrickHomMH=unlist(femeta(ai=datt$ai,n1i=datt$n1i,bi=datt$bi,n2i=datt$n2i, null.value=log(psi0), vtype="Hom", drop00=TRUE)[c("estimate","conf.int","p.value")])
 
 ### Li Het MH
-KendrickHetMH=unlist(femeta(ai=xk_mi,bi=tk_mi-xk_mi,ci=mk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi, null.value=log(psi0), drop00=TRUE)[c("estimate","conf.int","p.value")])
+KendrickHetMH=unlist(femeta(ai=datt$ai,n1i=datt$n1i,bi=datt$bi,n2i=datt$n2i, null.value=log(psi0), drop00=TRUE)[c("estimate","conf.int","p.value")])
 
 ### Li Hom Woolf
-KendrickHomWoolf=unlist(femeta(ai=xk_mi,bi=tk_mi-xk_mi,ci=mk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi, estimator="Woolf",null.value=log(psi0), vtype="Hom", drop00=TRUE)[c("estimate","conf.int","p.value")])
+KendrickHomWoolf=unlist(femeta(ai=datt$ai,n1i=datt$n1i,bi=datt$bi,n2i=datt$n2i, estimator="Woolf",null.value=log(psi0), vtype="Hom", drop00=TRUE)[c("estimate","conf.int","p.value")])
 
 ### Li Het Woolf
-KendrickHetWoolf=unlist(femeta(ai=xk_mi,bi=tk_mi-xk_mi,ci=mk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi, estimator="Woolf",null.value=log(psi0), drop00=TRUE)[c("estimate","conf.int","p.value")])
+KendrickHetWoolf=unlist(femeta(ai=datt$ai,n1i=datt$n1i,bi=datt$bi,n2i=datt$n2i, estimator="Woolf",null.value=log(psi0), drop00=TRUE)[c("estimate","conf.int","p.value")])
 
-### Li Hom Woolf
-KendrickHomMLE=unlist(femeta(ai=xk_mi,bi=tk_mi-xk_mi,ci=mk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi, estimator="CEMLE",null.value=log(psi0), vtype="Hom", drop00=TRUE)[c("estimate","conf.int","p.value")])
+### Li Hom MLE
+KendrickHomMLE=unlist(femeta(ai=datt$ai,n1i=datt$n1i,bi=datt$bi,n2i=datt$n2i, estimator="CEMLE",null.value=log(psi0), vtype="Hom", drop00=TRUE)[c("estimate","conf.int","p.value")])
 
-### Li Het Woolf
-KendrickHetMLE=unlist(femeta(ai=xk_mi,bi=tk_mi-xk_mi,ci=mk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi, estimator="CEMLE",null.value=log(psi0), drop00=TRUE)[c("estimate","conf.int","p.value")])
+### Li Het MLE
+KendrickHetMLE=unlist(femeta(ai=datt$ai,n1i=datt$n1i,bi=datt$bi,n2i=datt$n2i, estimator="CEMLE",null.value=log(psi0), drop00=TRUE)[c("estimate","conf.int","p.value")])
+
+### Plain MLE
+datr <- rbind(data.frame(aa = datt$ai, bb = datt$n1i-datt$ai, xval = 1, lab = 1:nrow(datt)), 
+              data.frame(aa = datt$bi, bb = datt$n2i-datt$bi, xval = 0, lab = 1:nrow(datt)))
+mod <- glm(cbind(aa, bb) ~ 0 + as.factor(lab) + xval, data = datr, family = "binomial")
+PlainMLE <- c(summary(mod)$coef[nrow(datt)+1,][1],confint.default(mod)[nrow(datt)+1,],summary(mod)$coef[nrow(datt)+1,][4])
+
 
 ### For CVD death (input Tian et al numbers manually)
 # tianetal <- c(0.171,-0.185,0.548,1) # p-value just a place holder
-# dat_struct_d <- round(rbind(c(NA,NA,NA,NA),
-#                       cMLE_Blaker,cMLE_Fish,
-#                       tianetal,MH,Peto,
-#                       KendrickHomMH,KendrickHetMH,
-#                       KendrickHomWoolf,KendrickHetWoolf,
-#                       KendrickHomMLE,KendrickHetMLE)[,-4],3)
-# 
-# tabletext_d <- cbind(c("Method", "Poisson-Binomial Approach", "cMLE w/ Fisher", "Tian et al", "Common-effect MH+0.5", "Peto Method+0.5", "Li & Rice MH w/Homogeneity",
-#                         "Li & Rice MH  w/Heterogeneity", "Li & Rice Woolf w/Homogeneity", "Li & Rice Woolf w/Heterogeneity", "Li & Rice MLE w/Homogeneity", "Li & Rice MLE w/Heterogeneity"),
-#                       c("log(OR)", "0.498", "0.498", "0.171", "0.529", "0.495", "0.182", "0.182", "0.202", "0.202", "0.506", "0.506"),
-#                       c("CI", "[-0.072,1.082]", "[-0.038,1.034]", "[-0.185,0.548]", "[-0.016,1.075]",
-#                         "[-0.020,1.010]", "[-0.589,0.953]", "[-0.507,0.871]", "[-0.418,0.823]", "[-0.428,0.832]", "[-0.027,1.038]", "[-0.007,1.019]"))
+# dd <- as.data.frame(
+#   round(rbind(cMLE_Fish,cMLE_Blaker,
+#               tianetal,Peto,
+#               MH,KendrickHomMH,KendrickHetMH,
+#               Woolf,KendrickHomWoolf,KendrickHetWoolf,
+#               PlainMLE,KendrickHomMLE,KendrickHetMLE)[,-4],3))
+# tabletext_x <- cbind(c("0.498","0.498","0.171","0.495","0.529","0.183","0.183","0.269","0.206","0.206","0.512","0.511","0.511"),
+#                      c("[-0.038,1.034]","[-0.072,1.082]","[-0.185,0.548]","[-0.020,1.010]","[-0.016,1.075]","[-0.589,0.506]","[-0.506,0.872]",
+#                        "[-0.217,0.754]","[-0.417,0.828]","[-0.426,0.837]","[-0.023,1.047]","[-0.023,1.044]","[-0.004,1.025]"))
+# main.names <- c("cMLE","Tian et al","Peto+0.5","Mantel-Haenszel","Woolf/IVW","Full MLE")
+# sub.names <- c("plain","fixed effects w/Blaker",
+#                "plain+0.5","common-effect L&R","fixed-effects L&R",
+#                "plain+0.5","common-effect L&R","fixed-effects L&R",
+#                "plain","common-effect L&R","fixed-effects L&R") 
+# atvals <- c(18:17, 15, 13, 11:9, 7:5, 3:1)
+# at.main <- c(18,15,13,11,7,3)
+# at.sub  <- c(18:17, 11:9, 7:5, 3:1)
 # 
 # pdf("rosiglit_d.pdf",width=6,height=4,onefile=FALSE)
-# forestplot(tabletext_d,dat_struct_d[,1],dat_struct_d[,2],dat_struct_d[,3],
-#            is.summary=c(TRUE,rep(FALSE,11)),xlog=F,zero=0,xlab="log(OR) [95% CI]",
-#            hrzl_lines=gpar(lty=2),align=c("l","l","l"),colgap=unit(0.5,"cm"),
-#            xticks=seq(-0.6,1.2,l=7),xticks.digits=2,boxsize=.25,graph.pos=4,
-#            txt_gp=fpTxtGp(label=list(gpar(cex=0.8),xlab=gpar(cex=0.8),ticks=gpar(cex=0.8))))
+# par(mar=c(4,12,2,8.5)+0.1)
+# with(dd, plot(x=est, y=atvals, pch=19, xlim=range(dd[,2:3], na.rm=TRUE), 
+#               ylim=range(atvals, na.rm=TRUE), axes=FALSE,
+#               xlab="log OR estimate", ylab=""))
+# abline(v=0, lty=2, col="grey50")
+# with(dd, segments(x0=ci.lb, x1=ci.ub, y0=atvals, y1=atvals))
+# axis(side=1, cex.axis=0.85)
+# mtext(side=2, at = at.main, main.names, las=1, line=12, adj=0)
+# mtext(side=2, at = at.sub ,  sub.names, las=1, line=0.5, adj=1)
+# mtext(side=4, at = atvals, tabletext_x[,1], las=1, line=1, adj=0.5)
+# mtext(side=4, at = atvals, tabletext_x[,2], las=1, line=5, adj=0.5)
+# mtext(side=2, at=19.5, "CVD mortality data: Method", las=1, adj=0, line=12, font=2)
+# mtext(side=4, at=19.5, "estimate", line=1, las=1, font=2, adj=0.5)
+# mtext(side=4, at=19.5, "95% CI", line=5, las=1, font=2, adj=0.5)
 # dev.off()
 
 ### For MI (input Tian et al numbers manually)
 tianetal <- c(0.342,0.179,0.559,0) # p-value just a place holder
-dat_struct_mi <- round(rbind(c(NA,NA,NA,NA),
-      cMLE_Blaker,cMLE_Fish,
-      tianetal,MH,Peto,
-      KendrickHomMH,KendrickHetMH,
-      KendrickHomWoolf,KendrickHetWoolf,
-      KendrickHomMLE,KendrickHetMLE)[,-4],3)
-
-tabletext_mi <- cbind(c("Method", "Fixed-effects cMLE w/ Blaker", "Fixed-effects cMLE w/ Fisher", "Tian et al", "Common-effect MH+0.5", "Common-effect Peto Method+0.5", "Common-effect Li & Rice MH",
-                        "Fixed-effects Li & Rice MH", "Common-effect Li & Rice Woolf", "Fixed-effects Li & Rice Woolf", "Common-effect Li & Rice MLE", "Common-effect Li & Rice MLE"),
-                      c("log(OR)", "0.355", "0.355", "0.342", "0.356", "0.356", "0.346", "0.346", "0.258", "0.258", "0.355", "0.355"),
-                      c("CI", "[0.010,0.694]", "[0.029,0.681]", "[0.179,0.559]", "[0.029,0.682]", 
-                        "[0.030,0.683]", "[-0.174,0.866]", "[-0.051,0.743]", "[-0.103,0.620]", "[-0.106,0.623]", "[0.029,0.689]", "[0.030,0.679]"))
+dd <- as.data.frame(
+        round(rbind(cMLE_Fish,cMLE_Blaker,
+        tianetal,Peto,
+        MH,KendrickHomMH,KendrickHetMH,
+        Woolf,KendrickHomWoolf,KendrickHetWoolf,
+        PlainMLE,KendrickHomMLE,KendrickHetMLE)[,-4],3))
+tabletext_x <- cbind(c("0.355","0.355","0.342","0.356","0.356","0.346","0.346","0.251","0.259","0.259","0.355","0.355","0.355"),
+                      c("[0.010,0.694]","[0.029,0.681]","[0.179,0.559]","[0.030,0.683]","[0.029,0.682]","[-0.174,0.866]","[-0.051,0.743]",
+                        "[-0.062,0.565]","[-0.103,0.621]","[-0.106,0.623]","[0.029,0.681]","[0.029,0.681]","[0.030,0.680]"))
+main.names <- c("cMLE","Tian et al","Peto+0.5","Mantel-Haenszel","Woolf/IVW","Full MLE")
+sub.names <- c("plain","fixed effects w/Blaker",
+               "plain+0.5","common-effect L&R","fixed-effects L&R",
+               "plain+0.5","common-effect L&R","fixed-effects L&R",
+               "plain","common-effect L&R","fixed-effects L&R") 
+atvals <- c(18:17, 15, 13, 11:9, 7:5, 3:1)
+at.main <- c(18,15,13,11,7,3)
+at.sub  <- c(18:17, 11:9, 7:5, 3:1)
 
 pdf("rosiglit_mi.pdf",width=6,height=4,onefile=FALSE)
-forestplot(tabletext_mi,dat_struct_mi[,1],dat_struct_mi[,2],dat_struct_mi[,3],
-           is.summary=c(TRUE,rep(FALSE,11)),xlog=F,zero=0,xlab="log(OR) [95% CI]",
-           hrzl_lines=gpar(lty=2),align=c("l","l","l"),colgap=unit(0.5,"cm"),
-           xticks=seq(-0.2,0.9,l=12),xticks.digits=2,boxsize=.25,graph.pos=4,
-           txt_gp=fpTxtGp(label=list(gpar(cex=0.8),xlab=gpar(cex=0.8),ticks=gpar(cex=0.8))))
+par(mar=c(4,12,2,8.5)+0.1)
+with(dd, plot(x=est, y=atvals, pch=19, xlim=range(dd[,2:3], na.rm=TRUE), 
+              ylim=range(atvals, na.rm=TRUE), axes=FALSE,
+              xlab="log OR estimate", ylab=""))
+abline(v=0, lty=2, col="grey50")
+with(dd, segments(x0=ci.lb, x1=ci.ub, y0=atvals, y1=atvals))
+axis(side=1, cex.axis=0.85)
+mtext(side=2, at = at.main, main.names, las=1, line=12, adj=0)
+mtext(side=2, at = at.sub ,  sub.names, las=1, line=0.5, adj=1)
+mtext(side=4, at = atvals, tabletext_x[,1], las=1, line=1, adj=0.5)
+mtext(side=4, at = atvals, tabletext_x[,2], las=1, line=5, adj=0.5)
+mtext(side=2, at=19.5, "MI data: Method", las=1, adj=0, line=12, font=2)
+mtext(side=4, at=19.5, "estimate", line=1, las=1, font=2, adj=0.5)
+mtext(side=4, at=19.5, "95% CI", line=5, las=1, font=2, adj=0.5)
 dev.off()
 
 
