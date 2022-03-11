@@ -425,17 +425,18 @@ get_psif_delta <- function(lams,lpsi1,lpsi2){
   pf <- mean(1/(1-unlist(lams)/exp(lpsif)))
   delta2 <- sum( 1/(u1+u2) * ( 1/(1-lams[[1]]/exp(lpsi1)) - pf )^2 ) +
     sum( 1/(u1+u2) * ( 1/(1-lams[[2]]/exp(lpsi2)) - pf )^2 )
-  c(lpsif=lpsif, delta2=delta2)
+  list(lpsif=lpsif, delta2=delta2, pf=pf)
 }
 
 getcov.exc <- function(lams,lims.bl,lpsi1,lpsi2){
   lpsif <- uniroot( function(lpsif){ pjk_fun(lams, lpsif, lpsi1, lpsi2)}, c(min(lpsi1,lpsi2),max(lpsi1,lpsi2)))$root
   pp <- get_pvecs(lams,lpsi1,lpsi2)
+  delta2 <- get_psif_delta(lams,lpsi1,lpsi2)$delta2
   uk <- length(unlist(lams))
   cc <- crity(pp$pf, uk, lims.bl)
   covhom <- if(pp$pf==0 | pp$pf==1) return(1) else if( cc[2] == 0 ) pbinom(cc[1], uk, pp$pf) else pbinom(cc[1], uk, pp$pf) - pbinom(cc[2]-1, uk, pp$pf)
   covhet <- if( cc[2] == 0 ) ppoisbinom(cc[1], c(pp$p1,pp$p2)) else if( cc[2] > 1) ppoisbinom(cc[1], c(pp$p1,pp$p2)) - ppoisbinom(cc[2]-1, c(pp$p1,pp$p2)) else ppoisbinom(cc[1], c(pp$p1,pp$p2)) - dpoisbinom(0, c(pp$p1,pp$p2))
-  c(lpsif=lpsif,homcov=covhom,hetcov=covhet,exccov=covhet-covhom,delta2=pp$delta2)
+  c(lpsif=lpsif,homcov=covhom,hetcov=covhet,exccov=covhet-covhom,delta2=delta2)
 }
 
 
@@ -463,9 +464,9 @@ lpsi15 <- lpsi15[lpsi15$lpsi1<lpsi15$lpsi2,]
 lpsi20 <- data.frame(lpsi1=line20[[1]]$x, lpsi2=line20[[1]]$y)
 lpsi20 <- cbind(lpsi20, t( apply(lpsi20, 1, function(x){getcov.exc(lams.ex, lims.bl, x[1], x[2])}) ))
 lpsi20 <- lpsi20[lpsi20$lpsi1<lpsi20$lpsi2,]
-p15 <- as.vector( apply( lpsi15, 1, function(x){get_pvecs(lams.ex, x[1], x[2])$pf} ) )
+p15 <- as.vector( apply( lpsi15, 1, function(x){get_psif_delta(lams.ex, x[1], x[2])$pf} ) )
 p15 <- sapply(p15,function(x){1-2*pnorm(qnorm(0.025) * sqrt(x*(1-x))/sqrt((x*(1-x)-0.15^2)))-0.95})
-p20 <- as.vector( apply( lpsi20, 1, function(x){get_pvecs(lams.ex, x[1], x[2])$pf} ) )
+p20 <- as.vector( apply( lpsi20, 1, function(x){get_psif_delta(lams.ex, x[1], x[2])$pf} ) )
 p20 <- sapply(p20,function(x){1-2*pnorm(qnorm(0.025) * sqrt(x*(1-x))/sqrt((x*(1-x)-0.20^2)))-0.95})
 
 pdf("abs_cov_bal.pdf",width=6,height=4)
@@ -527,9 +528,9 @@ lpsi15 <- lpsi15[lpsi15$lpsi1<lpsi15$lpsi2,]
 lpsi20 <- data.frame(lpsi1=line20[[1]]$x, lpsi2=line20[[1]]$y)
 lpsi20 <- cbind(lpsi20, t( apply(lpsi20, 1, function(x){getcov.exc(lams.ex, lims.bl, x[1], x[2])}) ))
 lpsi20 <- lpsi20[lpsi20$lpsi1<lpsi20$lpsi2,]
-p15 <- as.vector( apply( lpsi15, 1, function(x){get_pvecs(lams.ex, x[1], x[2])$pf} ) )
+p15 <- as.vector( apply( lpsi15, 1, function(x){get_psif_delta(lams.ex, x[1], x[2])$pf} ) )
 p15 <- sapply(p15,function(x){1-2*pnorm(qnorm(0.025) * sqrt(x*(1-x))/sqrt((x*(1-x)-0.15^2)))-0.95})
-p20 <- as.vector( apply( lpsi20, 1, function(x){get_pvecs(lams.ex, x[1], x[2])$pf} ) )
+p20 <- as.vector( apply( lpsi20, 1, function(x){get_psif_delta(lams.ex, x[1], x[2])$pf} ) )
 p20 <- sapply(p20,function(x){1-2*pnorm(qnorm(0.025) * sqrt(x*(1-x))/sqrt((x*(1-x)-0.20^2)))-0.95})
 
 pdf("abs_cov_unbal.pdf",width=6,height=4)
@@ -591,9 +592,9 @@ lpsi15 <- lpsi15[lpsi15$lpsi1<lpsi15$lpsi2,]
 lpsi20 <- data.frame(lpsi1=line20[[1]]$x, lpsi2=line20[[1]]$y)
 lpsi20 <- cbind(lpsi20, t( apply(lpsi20, 1, function(x){getcov.exc(lams.ex, lims.bl, x[1], x[2])}) ))
 lpsi20 <- lpsi20[lpsi20$lpsi1<lpsi20$lpsi2,]
-p15 <- as.vector( apply( lpsi15, 1, function(x){get_pvecs(lams.ex, x[1], x[2])$pf} ) )
+p15 <- as.vector( apply( lpsi15, 1, function(x){get_psif_delta(lams.ex, x[1], x[2])$pf} ) )
 p15 <- sapply(p15,function(x){1-2*pnorm(qnorm(0.025) * sqrt(x*(1-x))/sqrt((x*(1-x)-0.15^2)))-0.95})
-p20 <- as.vector( apply( lpsi20, 1, function(x){get_pvecs(lams.ex, x[1], x[2])$pf} ) )
+p20 <- as.vector( apply( lpsi20, 1, function(x){get_psif_delta(lams.ex, x[1], x[2])$pf} ) )
 p20 <- sapply(p20,function(x){1-2*pnorm(qnorm(0.025) * sqrt(x*(1-x))/sqrt((x*(1-x)-0.20^2)))-0.95})
 
 pdf("abs_cov_mn.pdf",width=6,height=4)
