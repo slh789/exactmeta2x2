@@ -196,42 +196,58 @@ negclik <- Vectorize(negclik)
 nlm1 <- nlm(negclik, p=0)
 hess1 <- hessian( negclik, nlm1$est)
 
-nlm_ind <- rep(NA,length(lamindiv))
-for(i in 1:length(lamindiv)){
-  if(length(lamindiv[[i]])==0){
-    nlm_ind[i] <- NA
+datd <- dat
+# datd <- as.data.frame(cbind(datd$rosi.d,datd$rosi.n-datd$rosi.d,datd$cont.d,datd$cont.n-datd$cont.d))
+datd <- as.data.frame(cbind(datd$rosi.mi,datd$rosi.n-datd$rosi.mi,datd$cont.mi,datd$cont.n-datd$cont.mi))
+colnames(datd) <- c("ai","bi","ci","di")
+
+for(i in 1:nrow(datd)){
+  if(datd$ai[i]+datd$ci[i]==0){
+    datd[i,c("ai","bi","ci","di")] <- datd[i,c("ai","bi","ci","di")]
   }
-  else{
-    negclik_ind <- function(lpsi){
-      if(sum(lamindiv[[i]]==0)!=0){
-        -dpoisbinom(xk_mi[i]-1, 1/(1-lamindiv[[i]]/exp(lpsi))[-which(lamindiv[[i]]==0)], log_d=TRUE) } 
-      else{
-        -dpoisbinom(xk_mi[i], 1/(1-lamindiv[[i]]/exp(lpsi)), log_d=TRUE)  	  }
-    }
-    negclik_ind <- Vectorize(negclik_ind)
-    nlm_ind[i] <- nlm(negclik_ind, p=0)$est
+  else if(datd$ai[i]*datd$ci[i]==0){
+    datd[i,c("ai","bi","ci","di")] <- datd[i,c("ai","bi","ci","di")] + 0.5
+  }
+  else {
+    datd[i,c("ai","bi","ci","di")] <- datd[i,c("ai","bi","ci","di")]
   }
 }
 
-ps <- c()
-for(i in 1:length(nlm_ind[!is.na(nlm_ind)])){
-  ptemp <- 1/(1-lamindiv[!is.na(nlm_ind)][[i]]/exp(nlm_ind[!is.na(nlm_ind)][i]))
-  ps <- c(ps,ptemp)
+naive_ind <- rep(NA,nrow(datd))
+for(i in 1:nrow(datd)){
+  naive_ind[i] <- (datd$ai[i]*datd$di[i])/(datd$bi[i]*datd$ci[i])
 }
 
-deltaest <- sqrt(mean((ps-mean(ps))^2))  ### delta hat under heterogeneity
-xiest <- sqrt(1/(1-deltaest^2/(mean(ps)*(1-mean(ps)))))
+phet <- c()
+for(i in 1:length(naive_ind[!is.na(naive_ind)])){
+  ptemp <- 1/(1-lamindiv[!is.na(naive_ind)][[i]]/naive_ind[!is.na(naive_ind)][i])
+  phet <- c(phet,ptemp)
+}
+
+phom <- c()
+for(i in 1:length(naive_ind[!is.na(naive_ind)])){
+  ptemp <- 1/(1-lamindiv[!is.na(naive_ind)][[i]]/exp(nlm1$est))
+  phom <- c(phom,ptemp)
+}
+
+deltaest <- sqrt(mean((phet-mean(phom))^2))  ### delta hat under heterogeneity
+xiest <- sqrt(1/(1-deltaest^2/(mean(phom)*(1-mean(phom)))))
 toolarge <- 1-2*pnorm(qnorm(.025)*xiest)-0.95
 
-ps <- c()
-for(i in 1:length(nlm_ind[!is.na(nlm_ind)])){
-  ptemp <- 1/(1-lamindiv[!is.na(nlm_ind)][[i]]/exp(nlm1$est))
-  ps <- c(ps,ptemp)
-}
-
-deltaesthom <- sqrt(mean((ps-mean(ps))^2))  ### delta hat under homogeneity
-xiesthom <- sqrt(1/(1-deltaesthom^2/(mean(ps)*(1-mean(ps)))))
+deltaesthom <- sqrt(mean((phom-mean(phom))^2))  ### delta hat under homogeneity
+xiesthom <- sqrt(1/(1-deltaesthom^2/(mean(phom)*(1-mean(phom)))))
 toolargehom <- 1-2*pnorm(qnorm(.025)*xiesthom)-0.95
+
+rbind(c(deltaest,xiest,toolarge),c(deltaesthom,xiesthom,toolargehom))
+
+# MI   [,1]     [,2]        [,3]
+# Het 0.1774393 1.070229 0.014060463
+# Hom 0.1381158 1.040824 0.008647509
+
+# D    [,1]     [,2]        [,3]
+# Het 0.1746012 1.073477 0.014619531
+# Hom 0.1065543 1.025568 0.005576888
+
 
 ### Getting the Blaker confidence intervals
 ### For CVD mortality
