@@ -240,6 +240,55 @@ toolargehom <- 1-2*pnorm(qnorm(.025)*xiesthom)-0.95
 
 rbind(c(deltaest,xiest,toolarge),c(deltaesthom,xiesthom,toolargehom))
 
+
+### Forest plot of individual studies
+
+#### For CVD mortality
+# yyi <- log(naive_ind)
+# vvi <- escalc(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",drop00=T)$vi
+# vcil <- yyi+qnorm(.025)/sqrt(vvi)
+# vciu <- yyi+qnorm(.975)/sqrt(vvi)
+# dtt <- as.data.frame(cbind(yyi,vcil,vciu))
+# 
+# imain.names <- paste0("Study ",c(1,5,8,11,13,15:16,18:20,25:28,30,32:35,39:42))
+# iatvals <- c(23:1)
+# iat.main <- c(23:1)
+# 
+# pdf("indiv_d.pdf",width=6,height=3.75,onefile=FALSE)
+# par(mar=c(4,2,2,2)+0.1)
+# with(dtt[!is.na(yyi),], plot(x=yyi[!is.na(yyi)], y=iatvals, pch=19, xlim=range(dtt[,2:3], na.rm=TRUE), 
+#                              ylim=range(iatvals, na.rm=TRUE), axes=FALSE,
+#                              xlab="log OR estimate", ylab=""))
+# abline(v=0, lty=2, col="grey50")
+# with(dtt[!is.na(yyi),], segments(x0=vcil, x1=vciu, y0=iatvals, y1=iatvals))
+# axis(side=1, cex.axis=0.85)
+# mtext(side=2, at = iat.main, imain.names, las=1, line=2, adj=0, cex=.5)
+# dev.off()
+
+
+#### For MI
+yyi <- log(naive_ind)
+vvi <- escalc(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",drop00=T)$vi
+vcil <- yyi+qnorm(.025)/sqrt(vvi)
+vciu <- yyi+qnorm(.975)/sqrt(vvi)
+dtt <- as.data.frame(cbind(yyi,vcil,vciu))
+
+imain.names <- paste0("Study ",c(1:19,21:30,32,34:37,39:42))
+iatvals <- c(38:1)
+iat.main <- c(38:1)
+
+pdf("indiv_mi.pdf",width=6,height=4.25,onefile=FALSE)
+par(mar=c(4,2,2,2)+0.1)
+with(dtt[!is.na(yyi),], plot(x=yyi[!is.na(yyi)], y=iatvals, pch=19, xlim=range(dtt[,2:3], na.rm=TRUE), 
+              ylim=range(iatvals, na.rm=TRUE), axes=FALSE,
+              xlab="log OR estimate", ylab=""))
+abline(v=0, lty=2, col="grey50")
+with(dtt[!is.na(yyi),], segments(x0=vcil, x1=vciu, y0=iatvals, y1=iatvals))
+axis(side=1, cex.axis=0.85)
+mtext(side=2, at = iat.main, imain.names, las=1, line=2, adj=0, cex=.5)
+dev.off()
+
+
 # MI   [,1]     [,2]        [,3]
 # Het 0.1774393 1.070229 0.014060463
 # Hom 0.1381158 1.040824 0.008647509
