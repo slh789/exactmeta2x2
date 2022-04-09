@@ -203,7 +203,7 @@ colnames(datd) <- c("ai","bi","ci","di")
 
 for(i in 1:nrow(datd)){
   if(datd$ai[i]+datd$ci[i]==0){
-    datd[i,c("ai","bi","ci","di")] <- datd[i,c("ai","bi","ci","di")]
+    datd[i,c("ai","bi","ci","di")] <- datd[i,c("ai","bi","ci","di")] + 0.5
   }
   else if(datd$ai[i]*datd$ci[i]==0){
     datd[i,c("ai","bi","ci","di")] <- datd[i,c("ai","bi","ci","di")] + 0.5
@@ -242,52 +242,225 @@ rbind(c(deltaest,xiest,toolarge),c(deltaesthom,xiesthom,toolargehom))
 
 
 ### Forest plot of individual studies
+study_num <- c("49653/011",
+                 "49653/020",
+                 "49653/024",
+                 "49653/093",
+                 "49653/094",
+                 "100684",
+                 "49653/143",
+                 "49653/211",
+                 "49653/284",
+                 "712753/008",
+                 "AVM100264",
+                 "BRL 49653C/185",
+                 "BRL 49653/334",
+                 "BRL 49653/347",
+                 "49653/015",
+                 "49653/079",
+                 "49653/080",
+                 "49653/082",
+                 "49653/085",
+                 "49653/095",
+                 "49653/097",
+                 "49653/125",
+                 "49653/127",
+                 "49653/128",
+                 "49653/134",
+                 "49653/135",
+                 "49653/136",
+                 "49653/145",
+                 "49653/147",
+                 "49653/162",
+                 "49653/234",
+                 "49653/330",
+                 "49653/331",
+                 "49653/137",
+                 "SB-712753/002",
+                 "SB-712753/003",
+                 "SB-712753/007",
+                 "SB-712753/009",
+                 "49653/132",
+                 "AVA100193",
+                 "DREAM",
+                 "ADOPT",
+                 "49653/044",
+                 "49653/096",
+                 "49653/282",
+                 "49653/369",
+                 "49653/325",
+                 "797620/004")
+                 
+
+study_names <- c("Lebovitz et al (2001)",
+                 "Charbonnel et al (1999)*",
+                 "Phillips et al (2001)",
+                 "Jones et al (2003)",
+                 "Fonseca et al (2000)",
+                 " ",
+                 "Campbell et al (2004)*",
+                 " ",
+                 "Weissman et al (2005)",
+                 " ",
+                 " ",
+                 " ",
+                 " ",
+                 "Hollander et al (2005)*",
+                 "Wolffenbuttel et al (2000)",
+                 " ",
+                 "St John Sutton et al (2002)",
+                 "Raski et al (2001)",
+                 " ",
+                 " ",
+                 " ",
+                 "Vongthavaravat et al (2002)",
+                 "Garber et al (2001)*",
+                 " ",
+                 "Jones et al (2001)*",
+                 " ",
+                 " ",
+                 "Baksi et al (2004)",
+                 "Barnett et al (2003)",
+                 "Kerenyi et al (2004)",
+                 "Hamann et al (2003)*",
+                 " ",
+                 "Ellis et al (2007)",
+                 " ",
+                 "Bailey et al (2005)",
+                 "Stewart et al (2006)",
+                 " ",
+                 "Home et al (2007)*",
+                 "Zhu et al (2003)",
+                 " ",
+                 "The DREAM Investigators (2006)",
+                 "Kahn et al (2007)",
+                 "Collegeville, PA (2001)*",
+                 " ",
+                 "Rood et al (2009)*",
+                 " ",
+                 "Rosenstock et al (2005)*",
+                 " ")
+
+
 
 #### For CVD mortality
+# datt <- as.data.frame(cbind(dat$rosi.d,dat$rosi.n-dat$rosi.d,dat$cont.d,dat$cont.n-dat$cont.d))
+# colnames(datt) <- c("ai","bi","ci","di")
+# datt$dbl0 <- ifelse(datt$ai+datt$ci==0,1,0)
+# datt$sgl0 <- ifelse(datt$ai*datt$ci==0&datt$ai+datt$ci!=0,1,0)
+# 
 # yyi <- log(naive_ind)
-# vvi <- escalc(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",drop00=T)$vi
+# vvi <- escalc(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",drop00=F)$vi
 # vcil <- yyi+qnorm(.025)/sqrt(vvi)
 # vciu <- yyi+qnorm(.975)/sqrt(vvi)
 # dtt <- as.data.frame(cbind(yyi,vcil,vciu))
 # 
-# imain.names <- paste0("Study ",c(1,5,8,11,13,15:16,18:20,25:28,30,32:35,39:42))
-# iatvals <- c(23:1)
-# iat.main <- c(23:1)
+# dtt <- as.data.frame(cbind(yyi,vcil,vciu,datt$dbl0,datt$sgl0))
 # 
-# pdf("indiv_d.pdf",width=6,height=3.75,onefile=FALSE)
-# par(mar=c(4,2,2,2)+0.1)
-# with(dtt[!is.na(yyi),], plot(x=yyi[!is.na(yyi)], y=iatvals, pch=19, xlim=range(dtt[,2:3], na.rm=TRUE), 
-#                              ylim=range(iatvals, na.rm=TRUE), axes=FALSE,
-#                              xlab="log OR estimate", ylab=""))
+# blb <- c(); bub <- c()
+# for(i in 1:length(yyi)){
+#   blb[i] <- tryCatch(uniroot( function(lpsi){ getp( lpsi, lamindiv[[i]], xk_mi[i])- 0.05}, c(-10,0)), error = function(e) NA)
+#   bub[i] <- tryCatch(uniroot( function(lpsi){ getp( lpsi, lamindiv[[i]], xk_mi[i])- 0.05}, c(0,10)), error = function(e) NA)
+# }
+# blb <- unlist(blb); bub <- unlist(bub)
+# 
+# dtt$nvcil <- ifelse(dtt$V4==0&dtt$V5==0,blb,vcil)
+# dtt$nvciu <- ifelse(dtt$V4==0&dtt$V5==0,bub,vciu)
+# dtt$nyii <- ifelse(dtt$V4==1,NA,dtt$yyi)
+# 
+# imain.num <- study_num
+# imain.names <- study_names
+# iatvals <- c(48:1)
+# iatvals1 <- c(48,44,41,38,36,34:33,31:29,24:21,19,17:14,10:7)
+# iatvals2 <- c(47:45,43:42,40:39,37,35,32,28:25,20,18,13:11,6:1)
+# iat.main <- c(48:1)
+# pch.vals <- c(19,rep(1,3),19,rep(1,2),19,rep(1,2),19,1,19,1,rep(19,2),1,rep(19,3),rep(1,4),rep(19,4),1,19,1,rep(19,4),rep(1,3),rep(19,4),rep(1,6))
+# 
+# 
+# pdf("indiv_d_newest.pdf",width=6,height=6,onefile=FALSE)
+# par(mar=c(4,10,2,9)+0.1)
+# with(dtt, plot(x=nyii, y=iatvals, pch=pch.vals, xlim=range(dtt[,6:7], na.rm=TRUE),
+#                ylim=range(iatvals, na.rm=TRUE), axes=FALSE,
+#                xlab="log OR estimate", ylab=""))
 # abline(v=0, lty=2, col="grey50")
-# with(dtt[!is.na(yyi),], segments(x0=vcil, x1=vciu, y0=iatvals, y1=iatvals))
+# with(dtt[dtt$V4==0,], segments(x0=nvcil, x1=nvciu, y0=iatvals1, y1=iatvals1))
+# with(dtt[dtt$V4==1,], segments(x0=nvcil, x1=nvciu, y0=iatvals2, y1=iatvals2, lty=2))
 # axis(side=1, cex.axis=0.85)
-# mtext(side=2, at = iat.main, imain.names, las=1, line=2, adj=0, cex=.5)
+# mtext(side=2, at = iat.main, imain.num, las=1, line=9, adj=0, cex=.5)
+# mtext(side=2, at = iat.main, imain.names, las=1, line=5, adj=0, cex=.5)
+# mtext(side=2, at=52, "CVD mortality data", las=1, adj=0, line=9, font=2)
+# mtext(side=2, at=49.5, "Study #", las=1, adj=0, line=9, font=1)
+# mtext(side=2, at=49.5, "Paper/Abstract*", las=1, adj=0, line=5, font=1)
+# mtext(side=4, at=52, "RSG", line=1, las=1, font=2, adj=0)
+# mtext(side=4, at=49.5, expression(N[k]), line=1, las=1, font=1, adj=0, cex=.75)
+# mtext(side=4, at=iatvals, paste(dat$rosi.n), las=1, line=1, adj=0, cex=.5)
+# mtext(side=4, at=49.5, expression(X[k]), line=3, las=1, font=1, adj=0, cex=.75)
+# mtext(side=4, at=iatvals, paste(dat$rosi.d), las=1, line=3, adj=0, cex=.5)
+# mtext(side=4, at=52, "Ctrl", line=5, las=1, font=2, adj=0)
+# mtext(side=4, at=49.5, expression(N[k]), line=5, las=1, font=1, adj=0, cex=.75)
+# mtext(side=4, at=iatvals, paste(dat$cont.n), las=1, line=5, adj=0, cex=.5)
+# mtext(side=4, at=49.5, expression(T[k]-X[k]), line=7, las=1, font=1, adj=0, cex=.75)
+# mtext(side=4, at=iatvals, paste(dat$cont.d), las=1, line=7, adj=0, cex=.5)
 # dev.off()
 
 
 #### For MI
+datt <- as.data.frame(cbind(dat$rosi.mi,dat$rosi.n-dat$rosi.mi,dat$cont.mi,dat$cont.n-dat$cont.mi))
+colnames(datt) <- c("ai","bi","ci","di")
+datt$dbl0 <- ifelse(datt$ai+datt$ci==0,1,0)
+datt$sgl0 <- ifelse(datt$ai*datt$ci==0&datt$ai+datt$ci!=0,1,0)
+
 yyi <- log(naive_ind)
-vvi <- escalc(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",drop00=T)$vi
+vvi <- escalc(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",drop00=F)$vi
 vcil <- yyi+qnorm(.025)/sqrt(vvi)
 vciu <- yyi+qnorm(.975)/sqrt(vvi)
-dtt <- as.data.frame(cbind(yyi,vcil,vciu))
+dtt <- as.data.frame(cbind(yyi,vcil,vciu,datt$dbl0,datt$sgl0))
 
-imain.names <- paste0("Study ",c(1:19,21:30,32,34:37,39:42))
-iatvals <- c(38:1)
-iat.main <- c(38:1)
+blb <- c(); bub <- c()
+for(i in 1:length(yyi)){
+  blb[i] <- tryCatch(uniroot( function(lpsi){ getp( lpsi, lamindiv[[i]], xk_mi[i])- 0.05}, c(-10,0)), error = function(e) NA)
+  bub[i] <- tryCatch(uniroot( function(lpsi){ getp( lpsi, lamindiv[[i]], xk_mi[i])- 0.05}, c(0,10)), error = function(e) NA)
+}
+blb <- unlist(blb); bub <- unlist(bub)
 
-pdf("indiv_mi.pdf",width=6,height=4.25,onefile=FALSE)
-par(mar=c(4,2,2,2)+0.1)
-with(dtt[!is.na(yyi),], plot(x=yyi[!is.na(yyi)], y=iatvals, pch=19, xlim=range(dtt[,2:3], na.rm=TRUE), 
-              ylim=range(iatvals, na.rm=TRUE), axes=FALSE,
-              xlab="log OR estimate", ylab=""))
+dtt$nvcil <- ifelse(dtt$V4==0&dtt$V5==0,blb,vcil)
+dtt$nvciu <- ifelse(dtt$V4==0&dtt$V5==0,bub,vciu)
+dtt$nyii <- ifelse(dtt$V4==1,NA,dtt$yyi)
+
+imain.num <- study_num
+imain.names <- study_names
+iatvals <- c(48:1)
+iatvals1 <- c(48:30,28:19,17,15:12,10:7)
+iatvals2 <- c(29,18,16,11,6:1)
+iat.main <- c(48:1)
+pch.vals <- c(rep(19,19),1,rep(19,10),1,19,1,rep(19,4),1,rep(19,4),rep(1,6))
+
+
+pdf("indiv_mi_newest.pdf",width=6,height=6,onefile=FALSE)
+par(mar=c(4,10,2,9)+0.1)
+with(dtt, plot(x=nyii, y=iatvals, pch=pch.vals, xlim=range(dtt[,6:7], na.rm=TRUE),
+               ylim=range(iatvals, na.rm=TRUE), axes=FALSE,
+               xlab="log OR estimate", ylab=""))
 abline(v=0, lty=2, col="grey50")
-with(dtt[!is.na(yyi),], segments(x0=vcil, x1=vciu, y0=iatvals, y1=iatvals))
+with(dtt[dtt$V4==0,], segments(x0=nvcil, x1=nvciu, y0=iatvals1, y1=iatvals1))
+with(dtt[dtt$V4==1,], segments(x0=nvcil, x1=nvciu, y0=iatvals2, y1=iatvals2, lty=2))
 axis(side=1, cex.axis=0.85)
-mtext(side=2, at = iat.main, imain.names, las=1, line=2, adj=0, cex=.5)
+mtext(side=2, at = iat.main, imain.num, las=1, line=9, adj=0, cex=.5)
+mtext(side=2, at = iat.main, imain.names, las=1, line=5, adj=0, cex=.5)
+mtext(side=2, at=52, "MI data", las=1, adj=0, line=9, font=2)
+mtext(side=2, at=49.5, "Study #", las=1, adj=0, line=9, font=1)
+mtext(side=2, at=49.5, "Paper/Abstract*", las=1, adj=0, line=5, font=1)
+mtext(side=4, at=52, "RSG", line=1, las=1, font=2, adj=0)
+mtext(side=4, at=49.5, expression(N[k]), line=1, las=1, font=1, adj=0, cex=.75)
+mtext(side=4, at=iatvals, paste(dat$rosi.n), las=1, line=1, adj=0, cex=.5)
+mtext(side=4, at=49.5, expression(X[k]), line=3, las=1, font=1, adj=0, cex=.75)
+mtext(side=4, at=iatvals, paste(dat$rosi.mi), las=1, line=3, adj=0, cex=.5)
+mtext(side=4, at=52, "Ctrl", line=5, las=1, font=2, adj=0)
+mtext(side=4, at=49.5, expression(N[k]), line=5, las=1, font=1, adj=0, cex=.75)
+mtext(side=4, at=iatvals, paste(dat$cont.n), las=1, line=5, adj=0, cex=.5)
+mtext(side=4, at=49.5, expression(T[k]-X[k]), line=7, las=1, font=1, adj=0, cex=.75)
+mtext(side=4, at=iatvals, paste(dat$cont.mi), las=1, line=7, adj=0, cex=.5)
 dev.off()
-
 
 # MI   [,1]     [,2]        [,3]
 # Het 0.1774393 1.070229 0.014060463
@@ -530,6 +703,21 @@ dev.off()
 
 pdf("delta_bal.pdf",width=6,height=4)
 ggplot(lpsi.cov, aes(lpsi1, lpsi2, z = sqrt(delta2))) + geom_contour_filled() + theme_bw() + ggtitle(expression(delta)) + 
+  xlab(expression(paste("log(", psi[1],")"))) + ylab(expression(paste("log(", psi[2],")")))
+dev.off()
+
+pdf("abs_cov_bal_talk.pdf",width=6,height=4)
+ggplot(lpsi.cov, aes(lpsi1, lpsi2, z = hetcov)) + geom_contour_filled() + theme_bw() +
+  xlab(expression(paste("log(", psi[1],")"))) + ylab(expression(paste("log(", psi[2],")")))
+dev.off()
+
+pdf("exc_cov_bal_talk.pdf",width=6,height=4)
+ggplot(lpsi.cov, aes(lpsi1, lpsi2, z = exccov)) + geom_contour_filled() + theme_bw() +
+  xlab(expression(paste("log(", psi[1],")"))) + ylab(expression(paste("log(", psi[2],")")))
+dev.off()
+
+pdf("delta_bal_talk.pdf",width=6,height=4)
+ggplot(lpsi.cov, aes(lpsi1, lpsi2, z = sqrt(delta2))) + geom_contour_filled() + theme_bw() +
   xlab(expression(paste("log(", psi[1],")"))) + ylab(expression(paste("log(", psi[2],")")))
 dev.off()
 
