@@ -392,7 +392,7 @@ study_names <- c("Lebovitz et al (2001)",
 # mtext(side=2, at=49.5, "Study #", las=1, adj=0, line=9, font=1)
 # mtext(side=2, at=49.5, "Paper/Abstract*", las=1, adj=0, line=5, font=1)
 # mtext(side=4, at=52, "RSG", line=1, las=1, font=2, adj=0)
-# mtext(side=4, at=49.5, expression(N[k]), line=1, las=1, font=1, adj=0, cex=.75)
+# mtext(side=4, at=49.5, expression(M[k]), line=1, las=1, font=1, adj=0, cex=.75)
 # mtext(side=4, at=iatvals, paste(dat$rosi.n), las=1, line=1, adj=0, cex=.5)
 # mtext(side=4, at=49.5, expression(X[k]), line=3, las=1, font=1, adj=0, cex=.75)
 # mtext(side=4, at=iatvals, paste(dat$rosi.d), las=1, line=3, adj=0, cex=.5)
@@ -451,7 +451,7 @@ mtext(side=2, at=52, "MI data", las=1, adj=0, line=9, font=2)
 mtext(side=2, at=49.5, "Study #", las=1, adj=0, line=9, font=1)
 mtext(side=2, at=49.5, "Paper/Abstract*", las=1, adj=0, line=5, font=1)
 mtext(side=4, at=52, "RSG", line=1, las=1, font=2, adj=0)
-mtext(side=4, at=49.5, expression(N[k]), line=1, las=1, font=1, adj=0, cex=.75)
+mtext(side=4, at=49.5, expression(M[k]), line=1, las=1, font=1, adj=0, cex=.75)
 mtext(side=4, at=iatvals, paste(dat$rosi.n), las=1, line=1, adj=0, cex=.5)
 mtext(side=4, at=49.5, expression(X[k]), line=3, las=1, font=1, adj=0, cex=.75)
 mtext(side=4, at=iatvals, paste(dat$rosi.mi), las=1, line=3, adj=0, cex=.5)
@@ -576,7 +576,7 @@ dd <- as.data.frame(
         Woolf,KendrickHomWoolf,KendrickHetWoolf,
         PlainMLE,KendrickHomMLE,KendrickHetMLE)[,-4],3))
 tabletext_x <- cbind(c("0.355","0.355","0.342","0.356","0.356","0.346","0.346","0.251","0.259","0.259","0.355","0.355","0.355"),
-                      c("[0.010,0.694]","[0.029,0.681]","[0.179,0.559]","[0.030,0.683]","[0.029,0.682]","[-0.174,0.866]","[-0.051,0.743]",
+                      c("[0.029,0.681]","[0.010,0.694]","[0.179,0.559]","[0.030,0.683]","[0.029,0.682]","[-0.174,0.866]","[-0.051,0.743]",
                         "[-0.062,0.565]","[-0.103,0.621]","[-0.106,0.623]","[0.029,0.681]","[0.029,0.681]","[0.030,0.680]"))
 main.names <- c("cMLE","Tian et al","Peto+0.5","Mantel-Haenszel","Woolf/IVW","Full MLE")
 sub.names <- c("plain","fixed effects w/Blaker",
