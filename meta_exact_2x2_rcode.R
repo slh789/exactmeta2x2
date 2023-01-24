@@ -1,6 +1,6 @@
 ### Directory set-up and packages
 rm(list=ls())
-### select your directory here (make sure data file is in that directory)
+setwd("C:/Users/spenc/OneDrive/Documents/School/Independent_Study/") ### select your directory here (make sure data file is in that directory)
 dat <- read.csv("rosiglit.csv")
 library(metafor)
 library(meta)
@@ -16,6 +16,7 @@ library(ggplot2)
 library(grid)
 library(gridExtra)
 library(exactmeta)
+library(rma.exact)
 
 
 
@@ -139,10 +140,10 @@ tianetal
 rm(list=ls())
 ### Read in and set-up data (again)
 dat <- read.csv("rosiglit.csv")
-# xk_mi <- dat$rosi.d
-# mk_mi <- dat$rosi.n
-# nk_mi <- dat$cont.n
-# tk_mi <- dat$rosi.d+dat$cont.d
+xk_mi <- dat$rosi.d
+mk_mi <- dat$rosi.n
+nk_mi <- dat$cont.n
+tk_mi <- dat$rosi.d+dat$cont.d
 xk_mi <- dat$rosi.mi
 mk_mi <- dat$rosi.n
 nk_mi <- dat$cont.n
@@ -196,150 +197,150 @@ negclik <- Vectorize(negclik)
 nlm1 <- nlm(negclik, p=0)
 hess1 <- hessian( negclik, nlm1$est)
 
-datd <- dat
+# datd <- dat
 # datd <- as.data.frame(cbind(datd$rosi.d,datd$rosi.n-datd$rosi.d,datd$cont.d,datd$cont.n-datd$cont.d))
-datd <- as.data.frame(cbind(datd$rosi.mi,datd$rosi.n-datd$rosi.mi,datd$cont.mi,datd$cont.n-datd$cont.mi))
-colnames(datd) <- c("ai","bi","ci","di")
-
-for(i in 1:nrow(datd)){
-  if(datd$ai[i]+datd$ci[i]==0){
-    datd[i,c("ai","bi","ci","di")] <- datd[i,c("ai","bi","ci","di")] + 0.5
-  }
-  else if(datd$ai[i]*datd$ci[i]==0){
-    datd[i,c("ai","bi","ci","di")] <- datd[i,c("ai","bi","ci","di")] + 0.5
-  }
-  else {
-    datd[i,c("ai","bi","ci","di")] <- datd[i,c("ai","bi","ci","di")]
-  }
-}
-
-naive_ind <- rep(NA,nrow(datd))
-for(i in 1:nrow(datd)){
-  naive_ind[i] <- (datd$ai[i]*datd$di[i])/(datd$bi[i]*datd$ci[i])
-}
-
-phet <- c()
-for(i in 1:length(naive_ind[!is.na(naive_ind)])){
-  ptemp <- 1/(1-lamindiv[!is.na(naive_ind)][[i]]/naive_ind[!is.na(naive_ind)][i])
-  phet <- c(phet,ptemp)
-}
-
-phom <- c()
-for(i in 1:length(naive_ind[!is.na(naive_ind)])){
-  ptemp <- 1/(1-lamindiv[!is.na(naive_ind)][[i]]/exp(nlm1$est))
-  phom <- c(phom,ptemp)
-}
-
-deltaest <- sqrt(mean((phet-mean(phom))^2))  ### delta hat under heterogeneity
-xiest <- sqrt(1/(1-deltaest^2/(mean(phom)*(1-mean(phom)))))
-toolarge <- 1-2*pnorm(qnorm(.025)*xiest)-0.95
-
-deltaesthom <- sqrt(mean((phom-mean(phom))^2))  ### delta hat under homogeneity
-xiesthom <- sqrt(1/(1-deltaesthom^2/(mean(phom)*(1-mean(phom)))))
-toolargehom <- 1-2*pnorm(qnorm(.025)*xiesthom)-0.95
-
-rbind(c(deltaest,xiest,toolarge),c(deltaesthom,xiesthom,toolargehom))
+# datd <- as.data.frame(cbind(datd$rosi.mi,datd$rosi.n-datd$rosi.mi,datd$cont.mi,datd$cont.n-datd$cont.mi))
+# colnames(datd) <- c("ai","bi","ci","di")
+# 
+# for(i in 1:nrow(datd)){
+#   if(datd$ai[i]+datd$ci[i]==0){
+#     datd[i,c("ai","bi","ci","di")] <- datd[i,c("ai","bi","ci","di")] + 0.5
+#   }
+#   else if(datd$ai[i]*datd$ci[i]==0){
+#     datd[i,c("ai","bi","ci","di")] <- datd[i,c("ai","bi","ci","di")] + 0.5
+#   }
+#   else {
+#     datd[i,c("ai","bi","ci","di")] <- datd[i,c("ai","bi","ci","di")]
+#   }
+# }
+# 
+# naive_ind <- rep(NA,nrow(datd))
+# for(i in 1:nrow(datd)){
+#   naive_ind[i] <- (datd$ai[i]*datd$di[i])/(datd$bi[i]*datd$ci[i])
+# }
+# 
+# phet <- c()
+# for(i in 1:length(naive_ind[!is.na(naive_ind)])){
+#   ptemp <- 1/(1-lamindiv[!is.na(naive_ind)][[i]]/naive_ind[!is.na(naive_ind)][i])
+#   phet <- c(phet,ptemp)
+# }
+# 
+# phom <- c()
+# for(i in 1:length(naive_ind[!is.na(naive_ind)])){
+#   ptemp <- 1/(1-lamindiv[!is.na(naive_ind)][[i]]/exp(nlm1$est))
+#   phom <- c(phom,ptemp)
+# }
+# 
+# deltaest <- sqrt(mean((phet-mean(phom))^2))  ### delta hat under heterogeneity
+# xiest <- sqrt(1/(1-deltaest^2/(mean(phom)*(1-mean(phom)))))
+# toolarge <- 1-2*pnorm(qnorm(.025)*xiest)-0.95
+# 
+# deltaesthom <- sqrt(mean((phom-mean(phom))^2))  ### delta hat under homogeneity
+# xiesthom <- sqrt(1/(1-deltaesthom^2/(mean(phom)*(1-mean(phom)))))
+# toolargehom <- 1-2*pnorm(qnorm(.025)*xiesthom)-0.95
+# 
+# rbind(c(deltaest,xiest,toolarge),c(deltaesthom,xiesthom,toolargehom))
 
 
 ### Forest plot of individual studies
-study_num <- c("49653/011",
-                 "49653/020",
-                 "49653/024",
-                 "49653/093",
-                 "49653/094",
-                 "100684",
-                 "49653/143",
-                 "49653/211",
-                 "49653/284",
-                 "712753/008",
-                 "AVM100264",
-                 "BRL 49653C/185",
-                 "BRL 49653/334",
-                 "BRL 49653/347",
-                 "49653/015",
-                 "49653/079",
-                 "49653/080",
-                 "49653/082",
-                 "49653/085",
-                 "49653/095",
-                 "49653/097",
-                 "49653/125",
-                 "49653/127",
-                 "49653/128",
-                 "49653/134",
-                 "49653/135",
-                 "49653/136",
-                 "49653/145",
-                 "49653/147",
-                 "49653/162",
-                 "49653/234",
-                 "49653/330",
-                 "49653/331",
-                 "49653/137",
-                 "SB-712753/002",
-                 "SB-712753/003",
-                 "SB-712753/007",
-                 "SB-712753/009",
-                 "49653/132",
-                 "AVA100193",
-                 "DREAM",
-                 "ADOPT",
-                 "49653/044",
-                 "49653/096",
-                 "49653/282",
-                 "49653/369",
-                 "49653/325",
-                 "797620/004")
-                 
-
-study_names <- c("Lebovitz et al (2001)",
-                 "Charbonnel et al (1999)*",
-                 "Phillips et al (2001)",
-                 "Jones et al (2003)",
-                 "Fonseca et al (2000)",
-                 " ",
-                 "Campbell et al (2004)*",
-                 " ",
-                 "Weissman et al (2005)",
-                 " ",
-                 " ",
-                 " ",
-                 " ",
-                 "Hollander et al (2005)*",
-                 "Wolffenbuttel et al (2000)",
-                 " ",
-                 "St John Sutton et al (2002)",
-                 "Raski et al (2001)",
-                 " ",
-                 " ",
-                 " ",
-                 "Vongthavaravat et al (2002)",
-                 "Garber et al (2001)*",
-                 " ",
-                 "Jones et al (2001)*",
-                 " ",
-                 " ",
-                 "Baksi et al (2004)",
-                 "Barnett et al (2003)",
-                 "Kerenyi et al (2004)",
-                 "Hamann et al (2003)*",
-                 " ",
-                 "Ellis et al (2007)",
-                 " ",
-                 "Bailey et al (2005)",
-                 "Stewart et al (2006)",
-                 " ",
-                 "Home et al (2007)",
-                 "Zhu et al (2003)",
-                 " ",
-                 "The DREAM Investigators (2006)",
-                 "Kahn et al (2007)",
-                 "Gould et al (2002)*",
-                 " ",
-                 "Rood et al (2009)*",
-                 " ",
-                 "Rosenstock et al (2005)*",
-                 " ")
+# study_num <- c("49653/011",
+#                  "49653/020",
+#                  "49653/024",
+#                  "49653/093",
+#                  "49653/094",
+#                  "100684",
+#                  "49653/143",
+#                  "49653/211",
+#                  "49653/284",
+#                  "712753/008",
+#                  "AVM100264",
+#                  "BRL 49653C/185",
+#                  "BRL 49653/334",
+#                  "BRL 49653/347",
+#                  "49653/015",
+#                  "49653/079",
+#                  "49653/080",
+#                  "49653/082",
+#                  "49653/085",
+#                  "49653/095",
+#                  "49653/097",
+#                  "49653/125",
+#                  "49653/127",
+#                  "49653/128",
+#                  "49653/134",
+#                  "49653/135",
+#                  "49653/136",
+#                  "49653/145",
+#                  "49653/147",
+#                  "49653/162",
+#                  "49653/234",
+#                  "49653/330",
+#                  "49653/331",
+#                  "49653/137",
+#                  "SB-712753/002",
+#                  "SB-712753/003",
+#                  "SB-712753/007",
+#                  "SB-712753/009",
+#                  "49653/132",
+#                  "AVA100193",
+#                  "DREAM",
+#                  "ADOPT",
+#                  "49653/044",
+#                  "49653/096",
+#                  "49653/282",
+#                  "49653/369",
+#                  "49653/325",
+#                  "797620/004")
+#                  
+# 
+# study_names <- c("Lebovitz et al (2001)",
+#                  "Charbonnel et al (1999)*",
+#                  "Phillips et al (2001)",
+#                  "Jones et al (2003)",
+#                  "Fonseca et al (2000)",
+#                  " ",
+#                  "Campbell et al (2004)*",
+#                  " ",
+#                  "Weissman et al (2005)",
+#                  " ",
+#                  " ",
+#                  " ",
+#                  " ",
+#                  "Hollander et al (2005)*",
+#                  "Wolffenbuttel et al (2000)",
+#                  " ",
+#                  "St John Sutton et al (2002)",
+#                  "Raski et al (2001)",
+#                  " ",
+#                  " ",
+#                  " ",
+#                  "Vongthavaravat et al (2002)",
+#                  "Garber et al (2001)*",
+#                  " ",
+#                  "Jones et al (2001)*",
+#                  " ",
+#                  " ",
+#                  "Baksi et al (2004)",
+#                  "Barnett et al (2003)",
+#                  "Kerenyi et al (2004)",
+#                  "Hamann et al (2003)*",
+#                  " ",
+#                  "Ellis et al (2007)",
+#                  " ",
+#                  "Bailey et al (2005)",
+#                  "Stewart et al (2006)",
+#                  " ",
+#                  "Home et al (2007)",
+#                  "Zhu et al (2003)",
+#                  " ",
+#                  "The DREAM Investigators (2006)",
+#                  "Kahn et al (2007)",
+#                  "Gould et al (2002)*",
+#                  " ",
+#                  "Rood et al (2009)*",
+#                  " ",
+#                  "Rosenstock et al (2005)*",
+#                  " ")
 
 
 
@@ -405,62 +406,62 @@ study_names <- c("Lebovitz et al (2001)",
 
 
 #### For MI
-datt <- as.data.frame(cbind(dat$rosi.mi,dat$rosi.n-dat$rosi.mi,dat$cont.mi,dat$cont.n-dat$cont.mi))
-colnames(datt) <- c("ai","bi","ci","di")
-datt$dbl0 <- ifelse(datt$ai+datt$ci==0,1,0)
-datt$sgl0 <- ifelse(datt$ai*datt$ci==0&datt$ai+datt$ci!=0,1,0)
-
-yyi <- log(naive_ind)
-vvi <- escalc(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",drop00=F)$vi
-vcil <- yyi+qnorm(.025)/sqrt(vvi)
-vciu <- yyi+qnorm(.975)/sqrt(vvi)
-dtt <- as.data.frame(cbind(yyi,vcil,vciu,datt$dbl0,datt$sgl0))
-
-blb <- c(); bub <- c()
-for(i in 1:length(yyi)){
-  blb[i] <- tryCatch(uniroot( function(lpsi){ getp( lpsi, lamindiv[[i]], xk_mi[i])- 0.05}, c(-10,0)), error = function(e) NA)
-  bub[i] <- tryCatch(uniroot( function(lpsi){ getp( lpsi, lamindiv[[i]], xk_mi[i])- 0.05}, c(0,10)), error = function(e) NA)
-}
-blb <- unlist(blb); bub <- unlist(bub)
-
-dtt$nvcil <- ifelse(dtt$V4==0&dtt$V5==0,blb,vcil)
-dtt$nvciu <- ifelse(dtt$V4==0&dtt$V5==0,bub,vciu)
-dtt$nyii <- ifelse(dtt$V4==1,NA,dtt$yyi)
-
-imain.num <- study_num
-imain.names <- study_names
-iatvals <- c(48:1)
-iatvals1 <- c(48:30,28:19,17,15:12,10:7)
-iatvals2 <- c(29,18,16,11,6:1)
-iat.main <- c(48:1)
-pch.vals <- c(rep(19,19),1,rep(19,10),1,19,1,rep(19,4),1,rep(19,4),rep(1,6))
-
-
-pdf("indiv_mi_newest.pdf",width=6,height=6,onefile=FALSE)
-par(mar=c(4,10,2,9)+0.1)
-with(dtt, plot(x=nyii, y=iatvals, pch=pch.vals, xlim=range(dtt[,6:7], na.rm=TRUE),
-               ylim=range(iatvals, na.rm=TRUE), axes=FALSE,
-               xlab="log OR estimate", ylab=""))
-abline(v=0, lty=2, col="grey50")
-with(dtt[dtt$V4==0,], segments(x0=nvcil, x1=nvciu, y0=iatvals1, y1=iatvals1))
-with(dtt[dtt$V4==1,], segments(x0=nvcil, x1=nvciu, y0=iatvals2, y1=iatvals2, lty=2))
-axis(side=1, cex.axis=0.85)
-mtext(side=2, at = iat.main, imain.num, las=1, line=9, adj=0, cex=.5)
-mtext(side=2, at = iat.main, imain.names, las=1, line=5, adj=0, cex=.5)
-mtext(side=2, at=52, "MI data", las=1, adj=0, line=9, font=2)
-mtext(side=2, at=49.5, "Study #", las=1, adj=0, line=9, font=1)
-mtext(side=2, at=49.5, "Paper/Abstract*", las=1, adj=0, line=5, font=1)
-mtext(side=4, at=52, "RSG", line=1, las=1, font=2, adj=0)
-mtext(side=4, at=49.5, expression(M[k]), line=1, las=1, font=1, adj=0, cex=.75)
-mtext(side=4, at=iatvals, paste(dat$rosi.n), las=1, line=1, adj=0, cex=.5)
-mtext(side=4, at=49.5, expression(X[k]), line=3, las=1, font=1, adj=0, cex=.75)
-mtext(side=4, at=iatvals, paste(dat$rosi.mi), las=1, line=3, adj=0, cex=.5)
-mtext(side=4, at=52, "Ctrl", line=5, las=1, font=2, adj=0)
-mtext(side=4, at=49.5, expression(N[k]), line=5, las=1, font=1, adj=0, cex=.75)
-mtext(side=4, at=iatvals, paste(dat$cont.n), las=1, line=5, adj=0, cex=.5)
-mtext(side=4, at=49.5, expression(T[k]-X[k]), line=7, las=1, font=1, adj=0, cex=.75)
-mtext(side=4, at=iatvals, paste(dat$cont.mi), las=1, line=7, adj=0, cex=.5)
-dev.off()
+# datt <- as.data.frame(cbind(dat$rosi.mi,dat$rosi.n-dat$rosi.mi,dat$cont.mi,dat$cont.n-dat$cont.mi))
+# colnames(datt) <- c("ai","bi","ci","di")
+# datt$dbl0 <- ifelse(datt$ai+datt$ci==0,1,0)
+# datt$sgl0 <- ifelse(datt$ai*datt$ci==0&datt$ai+datt$ci!=0,1,0)
+# 
+# yyi <- log(naive_ind)
+# vvi <- escalc(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",drop00=F)$vi
+# vcil <- yyi+qnorm(.025)/sqrt(vvi)
+# vciu <- yyi+qnorm(.975)/sqrt(vvi)
+# dtt <- as.data.frame(cbind(yyi,vcil,vciu,datt$dbl0,datt$sgl0))
+# 
+# blb <- c(); bub <- c()
+# for(i in 1:length(yyi)){
+#   blb[i] <- tryCatch(uniroot( function(lpsi){ getp( lpsi, lamindiv[[i]], xk_mi[i])- 0.05}, c(-10,0)), error = function(e) NA)
+#   bub[i] <- tryCatch(uniroot( function(lpsi){ getp( lpsi, lamindiv[[i]], xk_mi[i])- 0.05}, c(0,10)), error = function(e) NA)
+# }
+# blb <- unlist(blb); bub <- unlist(bub)
+# 
+# dtt$nvcil <- ifelse(dtt$V4==0&dtt$V5==0,blb,vcil)
+# dtt$nvciu <- ifelse(dtt$V4==0&dtt$V5==0,bub,vciu)
+# dtt$nyii <- ifelse(dtt$V4==1,NA,dtt$yyi)
+# 
+# imain.num <- study_num
+# imain.names <- study_names
+# iatvals <- c(48:1)
+# iatvals1 <- c(48:30,28:19,17,15:12,10:7)
+# iatvals2 <- c(29,18,16,11,6:1)
+# iat.main <- c(48:1)
+# pch.vals <- c(rep(19,19),1,rep(19,10),1,19,1,rep(19,4),1,rep(19,4),rep(1,6))
+# 
+# 
+# pdf("indiv_mi_newest.pdf",width=6,height=6,onefile=FALSE)
+# par(mar=c(4,10,2,9)+0.1)
+# with(dtt, plot(x=nyii, y=iatvals, pch=pch.vals, xlim=range(dtt[,6:7], na.rm=TRUE),
+#                ylim=range(iatvals, na.rm=TRUE), axes=FALSE,
+#                xlab="log OR estimate", ylab=""))
+# abline(v=0, lty=2, col="grey50")
+# with(dtt[dtt$V4==0,], segments(x0=nvcil, x1=nvciu, y0=iatvals1, y1=iatvals1))
+# with(dtt[dtt$V4==1,], segments(x0=nvcil, x1=nvciu, y0=iatvals2, y1=iatvals2, lty=2))
+# axis(side=1, cex.axis=0.85)
+# mtext(side=2, at = iat.main, imain.num, las=1, line=9, adj=0, cex=.5)
+# mtext(side=2, at = iat.main, imain.names, las=1, line=5, adj=0, cex=.5)
+# mtext(side=2, at=52, "MI data", las=1, adj=0, line=9, font=2)
+# mtext(side=2, at=49.5, "Study #", las=1, adj=0, line=9, font=1)
+# mtext(side=2, at=49.5, "Paper/Abstract*", las=1, adj=0, line=5, font=1)
+# mtext(side=4, at=52, "RSG", line=1, las=1, font=2, adj=0)
+# mtext(side=4, at=49.5, expression(M[k]), line=1, las=1, font=1, adj=0, cex=.75)
+# mtext(side=4, at=iatvals, paste(dat$rosi.n), las=1, line=1, adj=0, cex=.5)
+# mtext(side=4, at=49.5, expression(X[k]), line=3, las=1, font=1, adj=0, cex=.75)
+# mtext(side=4, at=iatvals, paste(dat$rosi.mi), las=1, line=3, adj=0, cex=.5)
+# mtext(side=4, at=52, "Ctrl", line=5, las=1, font=2, adj=0)
+# mtext(side=4, at=49.5, expression(N[k]), line=5, las=1, font=1, adj=0, cex=.75)
+# mtext(side=4, at=iatvals, paste(dat$cont.n), las=1, line=5, adj=0, cex=.5)
+# mtext(side=4, at=49.5, expression(T[k]-X[k]), line=7, las=1, font=1, adj=0, cex=.75)
+# mtext(side=4, at=iatvals, paste(dat$cont.mi), las=1, line=7, adj=0, cex=.5)
+# dev.off()
 
 # MI   [,1]     [,2]        [,3]
 # Het 0.1774393 1.070229 0.014060463
@@ -473,12 +474,11 @@ dev.off()
 
 ### Getting the Blaker confidence intervals
 ### For CVD mortality
-# bin.lb <- uniroot( function(lpsi){ getp( lpsi, lamstudy, sum(xk_mi))- 0.05}, c(-1,0))
-# bin.ub <- uniroot( function(lpsi){ getp( lpsi, lamstudy, sum(xk_mi))- 0.05}, c(0,3))
+bin.lb <- uniroot( function(lpsi){ getp( lpsi, lamstudy, sum(xk_mi))- 0.05}, c(-1,0))
+bin.ub <- uniroot( function(lpsi){ getp( lpsi, lamstudy, sum(xk_mi))- 0.05}, c(0,3))
 ### For MI
 bin.lb <- uniroot( function(lpsi){ getp( lpsi, lamstudy, sum(xk_mi))- 0.05}, c(-1,.5))
 bin.ub <- uniroot( function(lpsi){ getp( lpsi, lamstudy, sum(xk_mi))- 0.05}, c(.5,1))
-
 
 ### cMLE Blaker
 cMLE_Blaker <- c( nlm1$est, bin.lb$root, bin.ub$root, getp(lpsi=0, lamall=lamstudy, xplus=sum(xk_mi)))
@@ -497,8 +497,8 @@ Peto=unlist( rma.peto(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_m
 Woolf=as.numeric(unlist( rma.uni(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",method="FE",drop00=TRUE) )[c("beta","ci.lb","ci.ub","pval")])
 
 ### Note that Li and Rice's method labels the cells differently with bi being the number of cases in the control arm
-# datt <- dat[dat$rosi.d+dat$cont.d>0,] ### drop 00's
-# datt <- as.data.frame(cbind(datt$rosi.d,datt$rosi.n-datt$rosi.d,datt$cont.d,datt$cont.n-datt$cont.d))
+datt <- dat[dat$rosi.d+dat$cont.d>0,] ### drop 00's
+datt <- as.data.frame(cbind(datt$rosi.d,datt$rosi.n-datt$rosi.d,datt$cont.d,datt$cont.n-datt$cont.d))
 
 datt <- dat[dat$rosi.mi+dat$cont.mi>0,] ### drop 00's
 datt <- as.data.frame(cbind(datt$rosi.mi,datt$rosi.n,datt$cont.mi,datt$cont.n))
@@ -529,65 +529,96 @@ datr <- rbind(data.frame(aa = datt$ai, bb = datt$n1i-datt$ai, xval = 1, lab = 1:
 mod <- glm(cbind(aa, bb) ~ 0 + as.factor(lab) + xval, data = datr, family = "binomial")
 PlainMLE <- c(summary(mod)$coef[nrow(datt)+1,][1],confint.default(mod)[nrow(datt)+1,],summary(mod)$coef[nrow(datt)+1,][4])
 
+### RE DerSimonian-Laird
+DerLa=as.numeric(unlist( rma.uni(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",method="DL",drop00=TRUE) )[c("beta","ci.lb","ci.ub","pval")])
+
+### RE SJ
+SJse=as.numeric(unlist( rma.uni(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",method="SJ",drop00=TRUE) )["se"])
+SJest=as.numeric(unlist( rma.uni(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",method="SJ",drop00=TRUE) )[c("beta","ci.lb","ci.ub","pval")])
+
+SJest[2]=SJest[1]-qt(0.975,22)*SJse
+SJest[3]=SJest[1]+qt(0.975,22)*SJse
+
+SJest[2]=SJest[1]-qt(0.975,37)*SJse
+SJest[3]=SJest[1]+qt(0.975,37)*SJse
+
+### RE HKSJ
+hksj=as.numeric(unlist( rma.uni(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",method="FE",drop00=TRUE,knha=T) )[c("beta","ci.lb","ci.ub","pval")])
+
+### RE HM
+set.seed(12062022)
+MRE <- rma.uni(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",method="DL",drop00=TRUE)
+plhold <- rma.exact(yi=MRE$yi,vi=MRE$vi,tau2.bounds=c(0.001,MRE$se.tau2*qnorm(0.995)+0.001),plot=F)
+hm <- c(DerLa[1],plhold[1],plhold[2],1) ### p-value is just a place holder
+
+### RE GLMM
+umfs=as.numeric(unlist( rma.glmm(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",method="ML",model="UM.FS",drop00=TRUE) )[c("beta","ci.lb","ci.ub","pval")])
+umrs=as.numeric(unlist( rma.glmm(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",method="ML",model="UM.RS",drop00=TRUE) )[c("beta","ci.lb","ci.ub","pval")])
+cmal=as.numeric(unlist( rma.glmm(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",method="ML",model="CM.AL",drop00=TRUE) )[c("beta","ci.lb","ci.ub","pval")])
+cmel=as.numeric(unlist( rma.glmm(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",method="ML",model="CM.EL",drop00=TRUE) )[c("beta","ci.lb","ci.ub","pval")])
 
 ### For CVD death (input Tian et al numbers manually)
-# tianetal <- c(0.171,-0.185,0.548,1) # p-value just a place holder
-# dd <- as.data.frame(
-#   round(rbind(cMLE_Fish,cMLE_Blaker,
-#               tianetal,Peto,
-#               MH,KendrickHomMH,KendrickHetMH,
-#               Woolf,KendrickHomWoolf,KendrickHetWoolf,
-#               PlainMLE,KendrickHomMLE,KendrickHetMLE)[,-4],3))
-# tabletext_x <- cbind(c("0.498","0.498","0.171","0.495","0.529","0.183","0.183","0.269","0.206","0.206","0.512","0.511","0.511"),
-#                      c("[-0.038,1.034]","[-0.072,1.082]","[-0.185,0.548]","[-0.020,1.010]","[-0.016,1.075]","[-0.589,0.506]","[-0.506,0.872]",
-#                        "[-0.217,0.754]","[-0.417,0.828]","[-0.426,0.837]","[-0.023,1.047]","[-0.023,1.044]","[-0.004,1.025]"))
-# main.names <- c("cMLE","Tian et al","Peto+0.5","Mantel-Haenszel","Woolf/IVW","Full MLE")
-# sub.names <- c("plain","fixed effects w/Blaker",
-#                "plain+0.5","common-effect L&R","fixed-effects L&R",
-#                "plain+0.5","common-effect L&R","fixed-effects L&R",
-#                "plain","common-effect L&R","fixed-effects L&R") 
-# atvals <- c(18:17, 15, 13, 11:9, 7:5, 3:1)
-# at.main <- c(18,15,13,11,7,3)
-# at.sub  <- c(18:17, 11:9, 7:5, 3:1)
-# 
-# pdf("rosiglit_d.pdf",width=6,height=4,onefile=FALSE)
-# par(mar=c(4,12,2,8.5)+0.1)
-# with(dd, plot(x=est, y=atvals, pch=19, xlim=range(dd[,2:3], na.rm=TRUE), 
-#               ylim=range(atvals, na.rm=TRUE), axes=FALSE,
-#               xlab="log OR estimate", ylab=""))
-# abline(v=0, lty=2, col="grey50")
-# with(dd, segments(x0=ci.lb, x1=ci.ub, y0=atvals, y1=atvals))
-# axis(side=1, cex.axis=0.85)
-# mtext(side=2, at = at.main, main.names, las=1, line=12, adj=0)
-# mtext(side=2, at = at.sub ,  sub.names, las=1, line=0.5, adj=1)
-# mtext(side=4, at = atvals, tabletext_x[,1], las=1, line=1, adj=0.5)
-# mtext(side=4, at = atvals, tabletext_x[,2], las=1, line=5, adj=0.5)
-# mtext(side=2, at=19.5, "CVD mortality data: Method", las=1, adj=0, line=12, font=2)
-# mtext(side=4, at=19.5, "estimate", line=1, las=1, font=2, adj=0.5)
-# mtext(side=4, at=19.5, "95% CI", line=5, las=1, font=2, adj=0.5)
-# dev.off()
+tianetal <- c(0.171,-0.185,0.548,1) # p-value just a place holder
+dd <- as.data.frame(
+  round(rbind(cMLE_Fish,cMLE_Blaker,
+              tianetal,hm,Peto,
+              MH,KendrickHomMH,KendrickHetMH,
+              Woolf,KendrickHomWoolf,KendrickHetWoolf,DerLa,
+              PlainMLE,KendrickHomMLE,KendrickHetMLE,cmal,cmel)[,-4],3))
+tabletext_x <- cbind(c("0.498","0.498","0.171","0.269","0.495","0.529","0.183","0.183","0.269","0.206","0.206","0.269","0.512","0.511","0.511","0.506","0.509"),
+                     c("[-0.038,1.034]","[-0.072,1.082]","[-0.185,0.548]","[-0.228,0.778]","[-0.020,1.010]","[-0.016,1.075]","[-0.589,0.506]","[-0.506,0.872]",
+                       "[-0.217,0.754]","[-0.417,0.828]","[-0.426,0.837]","[-0.217,0.754]","[-0.023,1.047]","[-0.023,1.044]","[-0.004,1.025]",
+                       "[-0.027,1.040]","[-0.026,1.043]"))
+main.names <- c("cMLE","Tian et al","Michael et al","Peto","Mantel-Haenszel","Woolf/IVW","Full MLE","GLMM")
+sub.names <- c("plain","fixed effects w/Blaker","common-effect","random-effects","plain+0.5",
+               "plain+0.5","common-effect L&R","fixed-effects L&R",
+               "plain+0.5","common-effect L&R","fixed-effects L&R","random-effects D&L",
+               "plain","common-effect L&R","fixed-effects L&R",
+               "random-effects CMAL","random-effects CMEL")
+atvals <- c(24:23, 21, 19, 17, 15:13, 11:8, 6:4, 2:1)
+at.main <- c(24, 21, 19, 17, 15, 11, 6, 2)
+at.sub <- c(24:23, 21, 19, 17, 15:13, 11:8, 6:4, 2:1)
+
+pdf("rosiglit_d_with_re_glmm.pdf",width=6,height=5,onefile=FALSE)
+par(mar=c(4,12,2,8.5)+0.1)
+with(dd, plot(x=est, y=atvals, pch=19, xlim=range(dd[,2:3], na.rm=TRUE),
+              ylim=range(atvals, na.rm=TRUE), axes=FALSE,
+              xlab="log OR estimate", ylab=""))
+abline(v=0, lty=2, col="grey50")
+with(dd, segments(x0=ci.lb, x1=ci.ub, y0=atvals, y1=atvals))
+axis(side=1, cex.axis=0.85)
+mtext(side=2, at = at.main, main.names, las=1, line=12, adj=0)
+mtext(side=2, at = at.sub ,  sub.names, las=1, line=0.5, adj=1)
+mtext(side=4, at = atvals, tabletext_x[,1], las=1, line=1, adj=0.5)
+mtext(side=4, at = atvals, tabletext_x[,2], las=1, line=5, adj=0.5)
+mtext(side=2, at=25.5, "CVD mortality data: Method", las=1, adj=0, line=12, font=2)
+mtext(side=4, at=25.5, "estimate", line=1, las=1, font=2, adj=0.5)
+mtext(side=4, at=25.5, "95% CI", line=5, las=1, font=2, adj=0.5)
+dev.off()
 
 ### For MI (input Tian et al numbers manually)
 tianetal <- c(0.342,0.179,0.559,0) # p-value just a place holder
 dd <- as.data.frame(
         round(rbind(cMLE_Fish,cMLE_Blaker,
-        tianetal,Peto,
+        tianetal,hm,Peto,
         MH,KendrickHomMH,KendrickHetMH,
-        Woolf,KendrickHomWoolf,KendrickHetWoolf,
-        PlainMLE,KendrickHomMLE,KendrickHetMLE)[,-4],3))
-tabletext_x <- cbind(c("0.355","0.355","0.342","0.356","0.356","0.346","0.346","0.251","0.259","0.259","0.355","0.355","0.355"),
-                      c("[0.029,0.681]","[0.010,0.694]","[0.179,0.559]","[0.030,0.683]","[0.029,0.682]","[-0.174,0.866]","[-0.051,0.743]",
-                        "[-0.062,0.565]","[-0.103,0.621]","[-0.106,0.623]","[0.029,0.681]","[0.029,0.681]","[0.030,0.680]"))
-main.names <- c("cMLE","Tian et al","Peto+0.5","Mantel-Haenszel","Woolf/IVW","Full MLE")
-sub.names <- c("plain","fixed effects w/Blaker",
+        Woolf,KendrickHomWoolf,KendrickHetWoolf,DerLa,
+        PlainMLE,KendrickHomMLE,KendrickHetMLE,cmal,cmel)[,-4],3))
+tabletext_x <- cbind(c("0.355","0.355","0.342","0.251","0.356","0.356","0.346","0.346","0.251","0.259","0.259","0.251","0.355","0.355","0.355","0.351","0.355"),
+                      c("[0.029,0.681]","[0.010,0.694]","[0.179,0.559]","[-0.106,0.591]","[0.030,0.683]","[0.029,0.682]","[-0.174,0.866]","[-0.051,0.743]",
+                        "[-0.062,0.565]","[-0.103,0.621]","[-0.106,0.623]","[-0.062,0.565]","[0.029,0.681]","[0.029,0.681]","[0.030,0.680]",
+                        "[0.027,0.675]","[0.029,0.681]"))
+main.names <- c("cMLE","Tian et al","Michael et al","Peto","Mantel-Haenszel","Woolf/IVW","Full MLE","GLMM")
+sub.names <- c("plain","fixed effects w/Blaker","common-effect","random-effects","plain+0.5",
                "plain+0.5","common-effect L&R","fixed-effects L&R",
-               "plain+0.5","common-effect L&R","fixed-effects L&R",
-               "plain","common-effect L&R","fixed-effects L&R") 
-atvals <- c(18:17, 15, 13, 11:9, 7:5, 3:1)
-at.main <- c(18,15,13,11,7,3)
-at.sub  <- c(18:17, 11:9, 7:5, 3:1)
+               "plain+0.5","common-effect L&R","fixed-effects L&R","random-effects D&L",
+               "plain","common-effect L&R","fixed-effects L&R",
+               "random-effects CMAL","random-effects CMEL")
+atvals <- c(24:23, 21, 19, 17, 15:13, 11:8, 6:4, 2:1)
+at.main <- c(24, 21, 19, 17, 15, 11, 6, 2)
+at.sub <- c(24:23, 21, 19, 17, 15:13, 11:8, 6:4, 2:1)
 
-pdf("rosiglit_mi.pdf",width=6,height=4,onefile=FALSE)
+pdf("rosiglit_mi_with_re_glmm.pdf",width=6,height=5,onefile=FALSE)
 par(mar=c(4,12,2,8.5)+0.1)
 with(dd, plot(x=est, y=atvals, pch=19, xlim=range(dd[,2:3], na.rm=TRUE), 
               ylim=range(atvals, na.rm=TRUE), axes=FALSE,
@@ -599,9 +630,9 @@ mtext(side=2, at = at.main, main.names, las=1, line=12, adj=0)
 mtext(side=2, at = at.sub ,  sub.names, las=1, line=0.5, adj=1)
 mtext(side=4, at = atvals, tabletext_x[,1], las=1, line=1, adj=0.5)
 mtext(side=4, at = atvals, tabletext_x[,2], las=1, line=5, adj=0.5)
-mtext(side=2, at=19.5, "MI data: Method", las=1, adj=0, line=12, font=2)
-mtext(side=4, at=19.5, "estimate", line=1, las=1, font=2, adj=0.5)
-mtext(side=4, at=19.5, "95% CI", line=5, las=1, font=2, adj=0.5)
+mtext(side=2, at=25.5, "MI data: Method", las=1, adj=0, line=12, font=2)
+mtext(side=4, at=25.5, "estimate", line=1, las=1, font=2, adj=0.5)
+mtext(side=4, at=25.5, "95% CI", line=5, las=1, font=2, adj=0.5)
 dev.off()
 
 
@@ -614,6 +645,59 @@ dev.off()
 
 rm(list=ls())
 
+
+### IVW coverage
+lpsi.1 <- -1
+lpsi.2 <- seq(-2,0,l=51)
+mk_fix <- c(500,500); nk_fix <- c(500,500); tk_fix <- c(25,25)
+p_grp1 <- p_grp0 <- 0.125
+lpsi.1 <- log((p_grp1/(1-p_grp0))/(p_grp0/(1-p_grp1)))
+x1 <- rbinom(tk_fix[1],1,p_grp1)
+x2 <- rbinom(tk_fix[2],1,p_grp1)
+xk_fix <- c(x1,x2)
+as.numeric(unlist( rma.uni(ai=unlist(xk_fix),
+                           bi=unlist(mk_fix-xk_fix),
+                           ci=unlist(tk_fix-xk_fix),
+                           di=unlist(nk_fix-tk_fix+xk_fix),
+                           measure="OR",method="FE",drop00=TRUE) )[c("ci.lb","ci.ub")])
+
+mk_fix <- c(500,500); nk_fix <- c(500,500); tk_fix <- c(25,25)
+xk_fix <- seq(1,24)
+xk_fix <- expand.grid(seq(1,24),seq(1,24))
+ai <- seq(1,tk_fix[1]-1)
+bi <- mk_fix-ai
+ci <- tk_fix-ai
+di <- nk_fix-ci
+ai <- expand.grid(ai,ai)
+bi <- expand.grid(bi,bi)
+ci <- expand.grid(ci,ci)
+di <- expand.grid(di,di)
+sigma_i <- matrix(NA,nrow=nrow(ai),ncol=2)
+for(i in 1:2){
+  sigma_i[,i] <- 1/ai[,i]+1/bi[,i]+1/ci[,i]+1/di[,i]
+}
+size.g <- 11
+lpsi.g <- expand.grid(lpsi1=seq(-1,1,l=size.g), lpsi2=seq(-1,1,l=size.g)+0.001)
+lpsi.g <- subset(lpsi.g, lpsi1 != lpsi2 )
+lpsi.ivw <- matrix(NA,nrow=nrow(lpsi.g),ncol=nrow(sigma_i))
+for(j in 1:nrow(sigma_i)){
+  for(i in 1:nrow(lpsi.g)){
+    lpsi.ivw[i,j] <- sum(1/sigma_i[j,]*lpsi.g[i,])/sum(1/sigma_i[j,])
+  }
+}
+lpsi.ivw <- seq(-1,1,l=501)
+ci_mat <- matrix(NA,nrow=nrow(xk_fix),ncol=2)
+for(i in 1:nrow(xk_fix)){
+  ci_mat[i,] <- as.numeric(unlist( rma.uni(ai=unlist(xk_fix[i,]),
+                             bi=unlist(mk_fix-xk_fix[i,]),
+                             ci=unlist(tk_fix-xk_fix[i,]),
+                             di=unlist(nk_fix-tk_fix+xk_fix[i,]),
+                             measure="OR",method="FE",drop00=TRUE) )[c("ci.lb","ci.ub")])
+}
+cov.ivw <- c()
+for(j in 1:length(lpsi.ivw)){
+  cov.ivw[j] <- sum(ci_mat[,1]<=lpsi.ivw[j]&lpsi.ivw[j]<=ci_mat[,2])/nrow(ci_mat)
+}
 
 
 ### Write functions
@@ -940,3 +1024,258 @@ dev.off()
 
 
 
+### Write functions for ten strata
+multi2x2 <- function(mk, nk, tk){
+  K <- length(mk)
+  polycoeflist <- sapply(1:K, function(k){
+    Re(polyroot( dhyper(max(0,tk[k]-nk[k]):min(tk[k],mk[k]), mk[k], nk[k], tk[k] ))) }, simplify=FALSE)
+  polycoeflist
+}
+
+crity <- function(p, n, lims){
+  c( max( which(lims[1,]<p)) - 1, min(which(lims[2,]>p)) - 1 )
+}
+
+pjk_fun <- function(lams,lpsif,lpsi1,lpsi2,lpsi3,lpsi4,lpsi5,lpsi6,lpsi7,lpsi8,lpsi9,lpsi10){
+  sum(1/(1-lams[[1]]/exp(lpsi1)))+sum(1/(1-lams[[2]]/exp(lpsi2)))+
+    sum(1/(1-lams[[3]]/exp(lpsi3)))+sum(1/(1-lams[[4]]/exp(lpsi4)))+
+    sum(1/(1-lams[[5]]/exp(lpsi5)))+sum(1/(1-lams[[6]]/exp(lpsi6)))+
+    sum(1/(1-lams[[7]]/exp(lpsi7)))+sum(1/(1-lams[[8]]/exp(lpsi8)))+
+    sum(1/(1-lams[[9]]/exp(lpsi9)))+sum(1/(1-lams[[10]]/exp(lpsi10)))-
+    sum(1/(1-unlist(lams)/exp(lpsif)))
+}
+
+get_pvecs <- function(lams,lpsi1,lpsi2,lpsi3,lpsi4,lpsi5,lpsi6,lpsi7,lpsi8,lpsi9,lpsi10){
+  p1 <- 1/(1-lams[[1]]/exp(lpsi1))
+  p2 <- 1/(1-lams[[2]]/exp(lpsi2))
+  p3 <- 1/(1-lams[[3]]/exp(lpsi3))
+  p4 <- 1/(1-lams[[4]]/exp(lpsi4))
+  p5 <- 1/(1-lams[[5]]/exp(lpsi5))
+  p6 <- 1/(1-lams[[6]]/exp(lpsi6))
+  p7 <- 1/(1-lams[[7]]/exp(lpsi7))
+  p8 <- 1/(1-lams[[8]]/exp(lpsi8))
+  p9 <- 1/(1-lams[[9]]/exp(lpsi9))
+  p10 <- 1/(1-lams[[10]]/exp(lpsi10))
+  pf <- mean(c(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10))
+  delta2 <- mean( (c(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10)-pf)^2 )
+  list(p1=p1, p2=p2, p3=p3, p4=p4, p5=p5, 
+       p6=p6, p7=p7, p8=p8, p9=p9, p10=p10,
+       pf=pf, delta2=delta2)
+}
+
+getcov.exc <- function(lams,lims.bl,lpsi1,lpsi2,lpsi3,lpsi4,lpsi5,lpsi6,lpsi7,lpsi8,lpsi9,lpsi10){
+  lpsif <- uniroot( function(lpsif){ pjk_fun(lams, lpsif, lpsi1, lpsi2, lpsi3, lpsi4, lpsi5,
+                                             lpsi6, lpsi7, lpsi8, lpsi9, lpsi10)}, 
+                    c(min(lpsi1, lpsi2, lpsi3, lpsi4, lpsi5, lpsi6, lpsi7, lpsi8, lpsi9, lpsi10),
+                      max(lpsi1, lpsi2, lpsi3, lpsi4, lpsi5, lpsi6, lpsi7, lpsi8, lpsi9, lpsi10)))$root
+  pp <- get_pvecs(lams, lpsi1, lpsi2, lpsi3, lpsi4, lpsi5, lpsi6, lpsi7, lpsi8, lpsi9, lpsi10)
+  uk <- length(unlist(lams))
+  cc <- crity(pp$pf, uk, lims.bl)
+  covhom <- if(pp$pf==0 | pp$pf==1) return(1) else if( cc[2] == 0 ) pbinom(cc[1], uk, pp$pf) else pbinom(cc[1], uk, pp$pf) - pbinom(cc[2]-1, uk, pp$pf)
+  covhet <- if( cc[2] == 0 ) ppoisbinom(cc[1], c(pp$p1,pp$p2,pp$p3,pp$p4,pp$p5,pp$p6,pp$p7,pp$p8,pp$p9,pp$p10)) else if( cc[2] > 1) ppoisbinom(cc[1], c(pp$p1,pp$p2,pp$p3,pp$p4,pp$p5,pp$p6,pp$p7,pp$p8,pp$p9,pp$p10)) - ppoisbinom(cc[2]-1, c(pp$p1,pp$p2,pp$p3,pp$p4,pp$p5,pp$p6,pp$p7,pp$p8,pp$p9,pp$p10)) else ppoisbinom(cc[1], c(pp$p1,pp$p2,pp$p3,pp$p4,pp$p5,pp$p6,pp$p7,pp$p8,pp$p9,pp$p10)) - dpoisbinom(0, c(pp$p1,pp$p2,pp$p3,pp$p4,pp$p5,pp$p6,pp$p7,pp$p8,pp$p9,pp$p10))
+  c(lpsif=lpsif,homcov=covhom,hetcov=covhet,exccov=covhet-covhom,delta2=pp$delta2)
+}
+
+### Run functions for ten strata
+mk_fix <- c(50,75,100,125,150,50,75,100,125,150); nk_fix <- c(50,75,100,125,150,50,75,100,125,150); tk_fix <- c(3,3,4,4,5,5,4,4,3,3)
+mk_fix <- rep(100,10); nk_fix <- rep(100,10); tk_fix <- c(3,3,4,4,5,5,4,4,3,3)
+lams.ex <- multi2x2(mk=mk_fix,nk=nk_fix,tk=tk_fix)
+lims.bl <- sapply(0:length(unlist(lams.ex)),function(x){binom.exact(x,length(unlist(lams.ex)),tsmethod="blaker",control=exactci:::binomControl(tol=1E-7))$conf.int})
+expander_funct <- function(center,spread){
+  c(center-spread,center-spread/2,center-spread/3,center-spread/4,center-spread/5,center+spread/5,center+spread/4,center+spread/3,center+spread/2,center+spread)
+}
+lpsi.0 <- as.data.frame(t(sapply(seq(.01,1,l=501),expander_funct,center=0)))
+lpsi.cov010 <- as.data.frame(t(apply( lpsi.0, 1, function(x){getcov.exc(lams.ex, lims.bl, x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10])})))
+
+p010 <- as.vector( apply( lpsi.0, 1, function(x){get_pvecs(lams.ex, x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10])$pf} ) )
+p0del10 <- sqrt( as.vector( apply( lpsi.0, 1, function(x){get_pvecs(lams.ex, x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10])$delta2} ) ) )
+p0.010 <- c()
+for(i in 1:length(p010)){
+  x <- p010[i]
+  p0.010[i] <- 1-2*pnorm(qnorm(0.025) * sqrt(x*(1-x))/sqrt((x*(1-x)-lpsi.cov010$delta2[i])))-0.95
+}
+
+pdf("10_delta_excess.pdf",width=6,height=3)
+par(mar=c(4,4,1,0.1))
+plot(sqrt(lpsi.cov010$delta2),lpsi.cov010$exccov,type="l",ylim=c(0,.015),
+     xlab=expression(delta),
+     ylab="Excess coverage")
+lines(sqrt(lpsi.cov010$delta2),p0.010,lty=3,col="blue")
+dev.off()
+
+
+par(mar=c(4,4,1,0.1))
+plot(sqrt(lpsi.cov0$delta2),lpsi.cov0$exccov,type="l",xlim=c(0.05,0.15),ylim=c(0,.015),
+     xlab=expression(delta),
+     ylab="Excess coverage")
+lines(sqrt(lpsi.cov0$delta2),p0.0,lty=3,col="blue")
+lines(sqrt(lpsi.cov010$delta2),lpsi.cov010$exccov,lty=2)
+lines(sqrt(lpsi.cov010$delta2),p0.010,lty=5,col="red")
+
+
+
+
+
+### Write functions for fifty strata
+multi2x2 <- function(mk, nk, tk){
+  K <- length(mk)
+  polycoeflist <- sapply(1:K, function(k){
+    Re(polyroot( dhyper(max(0,tk[k]-nk[k]):min(tk[k],mk[k]), mk[k], nk[k], tk[k] ))) }, simplify=FALSE)
+  polycoeflist
+}
+
+crity <- function(p, n, lims){
+  c( max( which(lims[1,]<p)) - 1, min(which(lims[2,]>p)) - 1 )
+}
+
+pjk_fun <- function(lams,lpsif,lpsi50){
+  tempsum <- c()
+  for(i in 1:50){
+    tempsum[i] <- sum(1/(1-lams[[i]]/exp(lpsi50[i])))
+  }
+  sum(tempsum)-sum(1/(1-unlist(lams)/exp(lpsif)))
+}
+
+get_pvecs <- function(lams,lpsi50){
+  lpsi50 <- unlist(lpsi50)
+  p50 <- 1/(1-lams[[1]]/exp(lpsi50[1]))
+  for(i in 2:50){
+    temp_p <- 1/(1-lams[[i]]/exp(lpsi50[i]))
+    p50 <- c(p50,temp_p)
+  }
+  pf <- mean(p50)
+  delta2 <- mean( (p50-pf)^2 )
+  list(p50=p50, pf=pf, delta2=delta2)
+}
+
+getcov.exc <- function(lams,lims.bl,lpsi50){
+  lpsif <- uniroot( function(lpsif){ pjk_fun(lams, lpsif, lpsi50)}, 
+                    c(min(lpsi50),max(lpsi50)))$root
+  pp <- get_pvecs(lams, lpsi50)
+  uk <- length(unlist(lams))
+  cc <- crity(pp$pf, uk, lims.bl)
+  covhom <- if(pp$pf==0 | pp$pf==1) return(1) else if( cc[2] == 0 ) pbinom(cc[1], uk, pp$pf) else pbinom(cc[1], uk, pp$pf) - pbinom(cc[2]-1, uk, pp$pf)
+  covhet <- if( cc[2] == 0 ) ppoisbinom(cc[1], pp$p50) else if( cc[2] > 1) ppoisbinom(cc[1], pp$p50) - ppoisbinom(cc[2]-1, pp$p50) else ppoisbinom(cc[1], pp$p50)
+  c(lpsif=lpsif,homcov=covhom,hetcov=covhet,exccov=covhet-covhom,delta2=pp$delta2)
+}
+
+### Run functions for fifty strata
+set.seed(100)
+mk_fix <- round(runif(50,7,12)); nk_fix <- round(runif(50,7,12)); tk_fix <- round(runif(50,2,5))
+mk_fix <- rep(200,50); nk_fix <- rep(200,50); tk_fix <- round(runif(50,2,5))
+lams.ex <- multi2x2(mk=mk_fix,nk=nk_fix,tk=tk_fix)
+lims.bl <- sapply(0:length(unlist(lams.ex)),function(x){binom.exact(x,length(unlist(lams.ex)),tsmethod="blaker",control=exactci:::binomControl(tol=1E-7))$conf.int})
+expander_funct <- function(le,re){
+  seq(le,re,l=50)
+}
+lpsi.0 <- as.data.frame(t(sapply(seq(.8,2,l=501),expander_funct,le=-2)))
+lpsi.cov050 <- as.data.frame(t(apply( lpsi.0, 1, function(x){getcov.exc(lams.ex, lims.bl, x)})))
+
+p050 <- as.vector( apply( lpsi.0, 1, function(x){get_pvecs(lams.ex, x)$pf} ) )
+p0del50 <- sqrt( as.vector( apply( lpsi.0, 1, function(x){get_pvecs(lams.ex, x)$delta2} ) ) )
+p0.050 <- c()
+for(i in 1:length(p050)){
+  x <- p050[i]
+  p0.050[i] <- 1-2*pnorm(qnorm(0.025) * sqrt(x*(1-x))/sqrt((x*(1-x)-lpsi.cov050$delta2[i])))-0.95
+}
+
+pdf("50_delta_excess.pdf",width=6,height=3)
+par(mar=c(4,4,1,0.2))
+plot(sqrt(lpsi.cov050$delta2),lpsi.cov050$exccov,type="l",xlim=c(.177,.249),ylim=c(0,.03),
+     xlab=expression(delta),
+     ylab="Excess coverage")
+lines(sqrt(lpsi.cov050$delta2),p0.050,lty=3,col="blue")
+dev.off()
+
+
+
+
+################
+GRE <- rma.uni(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",method="DL",drop00=TRUE,level=99)
+GREmu0 <- seq(exp(GRE$ci.lb),exp(GRE$ci.ub),l=10)
+GREt2 <- seq(0.001,0.001+GRE$tau2+qnorm(0.995,0,1)*GRE$se.tau2,l=10)
+GREnu0 <- GREmu0*(1-GREmu0)*GREt2
+grval <- expand.grid(GREmu0,GREt2)
+a0 <- GREmu0*((GREmu0*(1-GREmu0)-GREnu0)/GREnu0)
+b0 <- (1-GREmu0)*((GREmu0*(1-GREmu0)-GREnu0)/GREnu0)
+grval0 <- expand.grid(a0,b0)
+set.seed(12062022)
+rbetabinom(dat[tk_mi>0,]$rosi.n,1,grval0[2,1],grval[2,2])
+estar <- rnorm(38,0,1)
+Ystar <- matrix(NA,nrow=38,ncol=length(MREmu0))
+Tstar <- matrix(NA,nrow=38,ncol=length(MREmu0))
+for(i in 1:length(MREmu0)){
+  Ystar[,i] <- grval[i,1]+(MRE$vi+grval[i,2])^(1/2)*estar
+  Tstar[,i] <- (Ystar[,i]-grval[i,1])^2*sum(MRE$tau2+MRE$vi)^(-1)
+}
+Ystar <- exp(grval[1,1])+(MRE$vi+grval[1,2])^(1/2)*estar
+Tstar <- (exp(MRE$beta)-grval[1,1])^2*sum(MRE$tau2+MRE$vi)^(-1)
+Ystar <- c()
+for(i in 1:length(MREmu0)){
+  grval[i,1]+(MRE$vi+grval[i,2])^(1/2)*estar
+}
+
+
+#######
+mcsim <- function(lpsi.tru,prob11,prob10,prob21,prob20,Mk,Nk){
+  xk1 <- sum(rbinom(Mk[1],1,prob11)); nxk1 <- sum(rbinom(Nk[2],1,prob10))
+  txk1 <- Mk[1]-xk1; ntxk1 <- Nk[1]-nxk1
+  xk2 <- sum(rbinom(Mk[2],1,prob21)); nxk2 <- sum(rbinom(Nk[2],1,prob20))
+  txk2 <- Mk[2]-xk2; ntxk2 <- Nk[2]-nxk2
+  cisim <- unlist(rma.uni(ai=c(xk1,xk2),bi=c(txk1,txk2),ci=c(nxk1,nxk2),di=c(ntxk1,ntxk2),measure="OR",method="FE",drop00=TRUE))[c("ci.lb","ci.ub")]
+  as.numeric(cisim$ci.lb<=lpsi.tru&lpsi.tru<=cisim$ci.ub)
+}
+
+pg11 <- 0.0250; pg10 <- 0.0250
+pg21 <- seq(0.0200,0.0550,l=50); pg20 <- seq(0.0550,0.0200,l=50)
+Mk_fix <- Nk_fix <- c(500,500)
+lpsi1 <- log((pg11/(1-pg10))/(pg10/(1-pg11)))
+lpsi2 <- log((pg21/(1-pg20))/(pg20/(1-pg21)))
+var1 <- 1/(pg11*Mk_fix[1])+1/((1-pg10)*Nk_fix[1])+1/(pg10*Nk_fix[1])+1/((1-pg11)*Mk_fix[1])
+var2 <- 1/(pg21*Mk_fix[2])+1/((1-pg10)*Nk_fix[2])+1/(pg10*Nk_fix[2])+1/((1-pg11)*Mk_fix[2])
+lpsi.ivw <- (lpsi1/var1+lpsi2/var2)/(1/var1+1/var2)
+set.seed(206)
+cov.ivw <- c()
+for(i in 1:length(pg21)){
+  cov.ivw[i] <- sum(replicate(1000,mcsim(lpsi.ivw[i],pg11,pg10,pg21[i],pg20[i],Mk_fix,Nk_fix)))/1000
+}
+
+pg11 <- 0.0250; pg10 <- 0.0100
+pg21 <- seq(0.0200,0.0550,l=50); pg20 <- seq(0.0550,0.0200,l=50)
+Mk_fix <- Nk_fix <- c(500,500)
+lpsi1 <- log((pg11/(1-pg10))/(pg10/(1-pg11)))
+lpsi2 <- log((pg21/(1-pg20))/(pg20/(1-pg21)))
+var1 <- 1/(pg11*Mk_fix[1])+1/((1-pg10)*Nk_fix[1])+1/(pg10*Nk_fix[1])+1/((1-pg11)*Mk_fix[1])
+var2 <- 1/(pg21*Mk_fix[2])+1/((1-pg10)*Nk_fix[2])+1/(pg10*Nk_fix[2])+1/((1-pg11)*Mk_fix[2])
+lpsi.ivw <- (lpsi1/var1+lpsi2/var2)/(1/var1+1/var2)
+set.seed(206)
+cov.ivwp <- c()
+for(i in 1:length(pg21)){
+  cov.ivwp[i] <- sum(replicate(1000,mcsim(lpsi.ivw[i],pg11,pg10,pg21[i],pg20[i],Mk_fix,Nk_fix)))/1000
+}
+
+pg11 <- 0.0100; pg10 <- 0.0250
+pg21 <- seq(0.0200,0.0550,l=50); pg20 <- seq(0.0550,0.0200,l=50)
+Mk_fix <- Nk_fix <- c(500,500)
+lpsi1 <- log((pg11/(1-pg10))/(pg10/(1-pg11)))
+lpsi2 <- log((pg21/(1-pg20))/(pg20/(1-pg21)))
+var1 <- 1/(pg11*Mk_fix[1])+1/((1-pg10)*Nk_fix[1])+1/(pg10*Nk_fix[1])+1/((1-pg11)*Mk_fix[1])
+var2 <- 1/(pg21*Mk_fix[2])+1/((1-pg10)*Nk_fix[2])+1/(pg10*Nk_fix[2])+1/((1-pg11)*Mk_fix[2])
+lpsi.ivw <- (lpsi1/var1+lpsi2/var2)/(1/var1+1/var2)
+set.seed(206)
+cov.ivwm <- c()
+for(i in 1:length(pg21)){
+  cov.ivwm[i] <- sum(replicate(1000,mcsim(lpsi.ivw[i],pg11,pg10,pg21[i],pg20[i],Mk_fix,Nk_fix)))/1000
+}
+
+pg11 <- 0.0250; pg10 <- 0.0250
+lpsi1 <- log((pg11/(1-pg10))/(pg10/(1-pg11)))
+plot(lpsi2-lpsi1,cov.ivw,type="l",xlab=expression(paste("log(", psi[2],")-log(", psi[1],")")),
+     ylab="Simulated coverage",xlim=c(-2,2),ylim=c(0.75,1))
+pg11 <- 0.0250; pg10 <- 0.0100
+lpsi1 <- log((pg11/(1-pg10))/(pg10/(1-pg11)))
+lines(lpsi2-lpsi1,cov.ivwp,lty=3)
+pg11 <- 0.0100; pg10 <- 0.0250
+lpsi1 <- log((pg11/(1-pg10))/(pg10/(1-pg11)))
+lines(lpsi2-lpsi1,cov.ivwm,lty=5)
+abline(h=0.95,lwd=2)
