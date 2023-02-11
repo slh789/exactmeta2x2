@@ -1,6 +1,6 @@
 ### Directory set-up and packages
 rm(list=ls())
-setwd("C:/Users/spenc/OneDrive/Documents/School/Independent_Study/") ### select your directory here (make sure data file is in that directory)
+### select your directory here (make sure data file is in that directory)
 dat <- read.csv("rosiglit.csv")
 library(metafor)
 library(meta)
@@ -646,60 +646,8 @@ dev.off()
 rm(list=ls())
 
 
-### IVW coverage
-lpsi.1 <- -1
-lpsi.2 <- seq(-2,0,l=51)
-mk_fix <- c(500,500); nk_fix <- c(500,500); tk_fix <- c(25,25)
-p_grp1 <- p_grp0 <- 0.125
-lpsi.1 <- log((p_grp1/(1-p_grp0))/(p_grp0/(1-p_grp1)))
-x1 <- rbinom(tk_fix[1],1,p_grp1)
-x2 <- rbinom(tk_fix[2],1,p_grp1)
-xk_fix <- c(x1,x2)
-as.numeric(unlist( rma.uni(ai=unlist(xk_fix),
-                           bi=unlist(mk_fix-xk_fix),
-                           ci=unlist(tk_fix-xk_fix),
-                           di=unlist(nk_fix-tk_fix+xk_fix),
-                           measure="OR",method="FE",drop00=TRUE) )[c("ci.lb","ci.ub")])
 
-mk_fix <- c(500,500); nk_fix <- c(500,500); tk_fix <- c(25,25)
-xk_fix <- seq(1,24)
-xk_fix <- expand.grid(seq(1,24),seq(1,24))
-ai <- seq(1,tk_fix[1]-1)
-bi <- mk_fix-ai
-ci <- tk_fix-ai
-di <- nk_fix-ci
-ai <- expand.grid(ai,ai)
-bi <- expand.grid(bi,bi)
-ci <- expand.grid(ci,ci)
-di <- expand.grid(di,di)
-sigma_i <- matrix(NA,nrow=nrow(ai),ncol=2)
-for(i in 1:2){
-  sigma_i[,i] <- 1/ai[,i]+1/bi[,i]+1/ci[,i]+1/di[,i]
-}
-size.g <- 11
-lpsi.g <- expand.grid(lpsi1=seq(-1,1,l=size.g), lpsi2=seq(-1,1,l=size.g)+0.001)
-lpsi.g <- subset(lpsi.g, lpsi1 != lpsi2 )
-lpsi.ivw <- matrix(NA,nrow=nrow(lpsi.g),ncol=nrow(sigma_i))
-for(j in 1:nrow(sigma_i)){
-  for(i in 1:nrow(lpsi.g)){
-    lpsi.ivw[i,j] <- sum(1/sigma_i[j,]*lpsi.g[i,])/sum(1/sigma_i[j,])
-  }
-}
-lpsi.ivw <- seq(-1,1,l=501)
-ci_mat <- matrix(NA,nrow=nrow(xk_fix),ncol=2)
-for(i in 1:nrow(xk_fix)){
-  ci_mat[i,] <- as.numeric(unlist( rma.uni(ai=unlist(xk_fix[i,]),
-                             bi=unlist(mk_fix-xk_fix[i,]),
-                             ci=unlist(tk_fix-xk_fix[i,]),
-                             di=unlist(nk_fix-tk_fix+xk_fix[i,]),
-                             measure="OR",method="FE",drop00=TRUE) )[c("ci.lb","ci.ub")])
-}
-cov.ivw <- c()
-for(j in 1:length(lpsi.ivw)){
-  cov.ivw[j] <- sum(ci_mat[,1]<=lpsi.ivw[j]&lpsi.ivw[j]<=ci_mat[,2])/nrow(ci_mat)
-}
-
-
+### New approach
 ### Write functions
 multi2x2 <- function(mk, nk, tk){
   K <- length(mk)
@@ -754,10 +702,10 @@ lims.bl <- sapply(0:length(unlist(lams.ex)),function(x){binom.exact(x,length(unl
 size.g <- 501
 lpsi.g <- expand.grid(lpsi1=seq(-1,1,l=size.g), lpsi2=seq(-1,1,l=size.g)+0.001)
 lpsi.g <- subset(lpsi.g, lpsi1 != lpsi2 )
-lpsi.cov <- as.data.frame(t(apply( lpsi.g, 1, function(x){getcov.exc(lams.ex, lims.bl, x[1], x[2])})))
-lpsi.cov <- as.data.frame(cbind(lpsi.g,lpsi.cov))
-lpsi.p <- lpsi.cov[lpsi.cov$lpsi1<lpsi.cov$lpsi2,]
-lpsi.p <- lpsi.p[order(lpsi.p$lpsif),]
+lpsi.covs <- as.data.frame(t(apply( lpsi.g, 1, function(x){getcov.exc(lams.ex, lims.bl, x[1], x[2])})))
+lpsi.covs <- as.data.frame(cbind(lpsi.g,lpsi.covs))
+lpsi.ps <- lpsi.cov[lpsi.covs$lpsi1<lpsi.covs$lpsi2,]
+lpsi.ps <- lpsi.ps[order(lpsi.ps$lpsif),]
 line15 <- contourLines(x=seq(-1,1,l=size.g),
                        y=seq(-1,1,l=size.g)+0.001,
                        z=matrix(sqrt(lpsi.cov$delta2),size.g,size.g), levels=c(0.15))
@@ -897,10 +845,10 @@ lims.bl <- sapply(0:length(unlist(lams.ex)),function(x){binom.exact(x,length(unl
 size.g <- 501
 lpsi.g <- expand.grid(lpsi1=seq(-1,1,l=size.g), lpsi2=seq(-1,1,l=size.g)+0.001)
 lpsi.g <- subset(lpsi.g, lpsi1 != lpsi2 )
-lpsi.cov <- as.data.frame(t(apply( lpsi.g, 1, function(x){getcov.exc(lams.ex, lims.bl, x[1], x[2])})))
-lpsi.cov <- as.data.frame(cbind(lpsi.g,lpsi.cov))
-lpsi.p <- lpsi.cov[lpsi.cov$lpsi1<lpsi.cov$lpsi2,]
-lpsi.p <- lpsi.p[order(lpsi.p$lpsif),]
+lpsi.covp <- as.data.frame(t(apply( lpsi.g, 1, function(x){getcov.exc(lams.ex, lims.bl, x[1], x[2])})))
+lpsi.covp <- as.data.frame(cbind(lpsi.g,lpsi.covp))
+lpsi.pp <- lpsi.covp[lpsi.covp$lpsi1<lpsi.covp$lpsi2,]
+lpsi.pp <- lpsi.pp[order(lpsi.pp$lpsif),]
 line15 <- contourLines(x=seq(-1,1,l=size.g),
                        y=seq(-1,1,l=size.g)+0.001,
                        z=matrix(sqrt(lpsi.cov$delta2),size.g,size.g), levels=c(0.15))
@@ -1189,93 +1137,87 @@ dev.off()
 
 
 
+### This code will generate the coverages for Woolf, they can then be plotted with the Blaker coverages using plot commands
 
-################
-GRE <- rma.uni(ai=xk_mi,bi=mk_mi-xk_mi,ci=tk_mi-xk_mi,di=nk_mi-tk_mi+xk_mi,measure="OR",method="DL",drop00=TRUE,level=99)
-GREmu0 <- seq(exp(GRE$ci.lb),exp(GRE$ci.ub),l=10)
-GREt2 <- seq(0.001,0.001+GRE$tau2+qnorm(0.995,0,1)*GRE$se.tau2,l=10)
-GREnu0 <- GREmu0*(1-GREmu0)*GREt2
-grval <- expand.grid(GREmu0,GREt2)
-a0 <- GREmu0*((GREmu0*(1-GREmu0)-GREnu0)/GREnu0)
-b0 <- (1-GREmu0)*((GREmu0*(1-GREmu0)-GREnu0)/GREnu0)
-grval0 <- expand.grid(a0,b0)
-set.seed(12062022)
-rbetabinom(dat[tk_mi>0,]$rosi.n,1,grval0[2,1],grval[2,2])
-estar <- rnorm(38,0,1)
-Ystar <- matrix(NA,nrow=38,ncol=length(MREmu0))
-Tstar <- matrix(NA,nrow=38,ncol=length(MREmu0))
-for(i in 1:length(MREmu0)){
-  Ystar[,i] <- grval[i,1]+(MRE$vi+grval[i,2])^(1/2)*estar
-  Tstar[,i] <- (Ystar[,i]-grval[i,1])^2*sum(MRE$tau2+MRE$vi)^(-1)
-}
-Ystar <- exp(grval[1,1])+(MRE$vi+grval[1,2])^(1/2)*estar
-Tstar <- (exp(MRE$beta)-grval[1,1])^2*sum(MRE$tau2+MRE$vi)^(-1)
-Ystar <- c()
-for(i in 1:length(MREmu0)){
-  grval[i,1]+(MRE$vi+grval[i,2])^(1/2)*estar
+library("MCMCpack")
+
+library("metafor")
+
+
+
+pdf("woolfcoverheterogeneity.pdf", w=4, h=6)
+
+par(mfrow=c(2,1))
+
+
+
+# do the meta-analysis
+
+get.ints <- function(x1,x2,n1,n2){
+  
+  unlist( rma(measure="OR",to="only0",
+              
+              ai=x1, bi=n1-x1, ci=x2, di=n2-x2)[c("b","ci.lb","ci.ub")])
+  
 }
 
 
-#######
-mcsim <- function(lpsi.tru,prob11,prob10,prob21,prob20,Mk,Nk){
-  xk1 <- sum(rbinom(Mk[1],1,prob11)); nxk1 <- sum(rbinom(Nk[2],1,prob10))
-  txk1 <- Mk[1]-xk1; ntxk1 <- Nk[1]-nxk1
-  xk2 <- sum(rbinom(Mk[2],1,prob21)); nxk2 <- sum(rbinom(Nk[2],1,prob20))
-  txk2 <- Mk[2]-xk2; ntxk2 <- Nk[2]-nxk2
-  cisim <- unlist(rma.uni(ai=c(xk1,xk2),bi=c(txk1,txk2),ci=c(nxk1,nxk2),di=c(ntxk1,ntxk2),measure="OR",method="FE",drop00=TRUE))[c("ci.lb","ci.ub")]
-  as.numeric(cisim$ci.lb<=lpsi.tru&lpsi.tru<=cisim$ci.ub)
+# complete enumeration, check coverage
+
+get.cover <- function(psi1, psi2, na.rm=FALSE){
+  
+  dd <- expand.grid(x1=0:15,x2=0:35) # Tk=(15,35)
+  
+  dd$p1 <- apply(dd, 1, function(x){
+    
+    dnoncenhypergeom(x[1], 500, 500, 15, psi=psi1)}) # Mk=500, Nk=500, Tk=(15,35)
+  
+  dd$p2 <- apply(dd, 1, function(x){
+    
+    dnoncenhypergeom(x[2], 500, 500, 35, psi=psi2)}) # Mk=500, Nk=500, Tk=(15,35)
+  
+  dd$prob <- with(dd, p1*p2)
+  
+  ints <- t(apply( dd, 1, function(x){ get.ints(x1=x[1:2], x2=c(15,35)-x[1:2], 500, 500)} )) # Mk=500, Nk=500, Tk=(15,35)
+  
+  ee <- cbind(dd, ints)
+ 
+  # we're looking at homogeneity
+  
+  sum( subset(ee, (log(psi1) >= ci.lb) & (log(psi1) <= ci.ub))$prob, na.rm=na.rm )
+
+  
 }
 
-pg11 <- 0.0250; pg10 <- 0.0250
-pg21 <- seq(0.0200,0.0550,l=50); pg20 <- seq(0.0550,0.0200,l=50)
-Mk_fix <- Nk_fix <- c(500,500)
-lpsi1 <- log((pg11/(1-pg10))/(pg10/(1-pg11)))
-lpsi2 <- log((pg21/(1-pg20))/(pg20/(1-pg21)))
-var1 <- 1/(pg11*Mk_fix[1])+1/((1-pg10)*Nk_fix[1])+1/(pg10*Nk_fix[1])+1/((1-pg11)*Mk_fix[1])
-var2 <- 1/(pg21*Mk_fix[2])+1/((1-pg10)*Nk_fix[2])+1/(pg10*Nk_fix[2])+1/((1-pg11)*Mk_fix[2])
-lpsi.ivw <- (lpsi1/var1+lpsi2/var2)/(1/var1+1/var2)
-set.seed(206)
-cov.ivw <- c()
-for(i in 1:length(pg21)){
-  cov.ivw[i] <- sum(replicate(1000,mcsim(lpsi.ivw[i],pg11,pg10,pg21[i],pg20[i],Mk_fix,Nk_fix)))/1000
+
+# if heterogeneous case is wanted, use this function and modify get.cover
+
+get.truth <- function(x1,x2,n1,n2,psi1,psi2){
+  
+  ai=ifelse(x1==0,0.5,x1)
+  
+  bi=n1-x1
+  
+  ci=ifelse(x2==0,0.5,x2)
+  
+  di=n2-x2
+  
+  wi <- 1/ai+1/bi+1/ci+1/di
+  
+  exp((1/wi[1]*log(psi1)+1/wi[2]*log(psi2))/(1/wi[1]+1/wi[2]))
+  
 }
 
-pg11 <- 0.0250; pg10 <- 0.0100
-pg21 <- seq(0.0200,0.0550,l=50); pg20 <- seq(0.0550,0.0200,l=50)
-Mk_fix <- Nk_fix <- c(500,500)
-lpsi1 <- log((pg11/(1-pg10))/(pg10/(1-pg11)))
-lpsi2 <- log((pg21/(1-pg20))/(pg20/(1-pg21)))
-var1 <- 1/(pg11*Mk_fix[1])+1/((1-pg10)*Nk_fix[1])+1/(pg10*Nk_fix[1])+1/((1-pg11)*Mk_fix[1])
-var2 <- 1/(pg21*Mk_fix[2])+1/((1-pg10)*Nk_fix[2])+1/(pg10*Nk_fix[2])+1/((1-pg11)*Mk_fix[2])
-lpsi.ivw <- (lpsi1/var1+lpsi2/var2)/(1/var1+1/var2)
-set.seed(206)
-cov.ivwp <- c()
-for(i in 1:length(pg21)){
-  cov.ivwp[i] <- sum(replicate(1000,mcsim(lpsi.ivw[i],pg11,pg10,pg21[i],pg20[i],Mk_fix,Nk_fix)))/1000
-}
+# this will find absolute coverage
 
-pg11 <- 0.0100; pg10 <- 0.0250
-pg21 <- seq(0.0200,0.0550,l=50); pg20 <- seq(0.0550,0.0200,l=50)
-Mk_fix <- Nk_fix <- c(500,500)
-lpsi1 <- log((pg11/(1-pg10))/(pg10/(1-pg11)))
-lpsi2 <- log((pg21/(1-pg20))/(pg20/(1-pg21)))
-var1 <- 1/(pg11*Mk_fix[1])+1/((1-pg10)*Nk_fix[1])+1/(pg10*Nk_fix[1])+1/((1-pg11)*Mk_fix[1])
-var2 <- 1/(pg21*Mk_fix[2])+1/((1-pg10)*Nk_fix[2])+1/(pg10*Nk_fix[2])+1/((1-pg11)*Mk_fix[2])
-lpsi.ivw <- (lpsi1/var1+lpsi2/var2)/(1/var1+1/var2)
-set.seed(206)
-cov.ivwm <- c()
-for(i in 1:length(pg21)){
-  cov.ivwm[i] <- sum(replicate(1000,mcsim(lpsi.ivw[i],pg11,pg10,pg21[i],pg20[i],Mk_fix,Nk_fix)))/1000
-}
+lpsi.vals <- seq(-1,1,l=1001)
 
-pg11 <- 0.0250; pg10 <- 0.0250
-lpsi1 <- log((pg11/(1-pg10))/(pg10/(1-pg11)))
-plot(lpsi2-lpsi1,cov.ivw,type="l",xlab=expression(paste("log(", psi[2],")-log(", psi[1],")")),
-     ylab="Simulated coverage",xlim=c(-2,2),ylim=c(0.75,1))
-pg11 <- 0.0250; pg10 <- 0.0100
-lpsi1 <- log((pg11/(1-pg10))/(pg10/(1-pg11)))
-lines(lpsi2-lpsi1,cov.ivwp,lty=3)
-pg11 <- 0.0100; pg10 <- 0.0250
-lpsi1 <- log((pg11/(1-pg10))/(pg10/(1-pg11)))
-lines(lpsi2-lpsi1,cov.ivwm,lty=5)
-abline(h=0.95,lwd=2)
+cov.vals <- rep(NA, length(lpsi.vals))
+
+for(i in 1:length(lpsi.vals)){
+  
+  cov.vals[i] <- tryCatch( get.cover(exp(lpsi.vals[i]),exp(0), na.rm=TRUE),
+                           
+                           error=function(e){NA} )
+  
+}
